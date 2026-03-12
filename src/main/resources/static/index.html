@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantMaster Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px 40px;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #00d4ff;
+        }
+
+        .header .status {
+            font-size: 14px;
+            color: #53cf60;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px 40px;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* 전략 설정 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #2a2a4a;
+            font-size: 14px;
+        }
+
+        th {
+            color: #888;
+            font-weight: normal;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        /* 활성/비활성 뱃지 */
+        .badge-active {
+            background: #1a4a2a;
+            color: #53cf60;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .badge-inactive {
+            background: #3a2a2a;
+            color: #cf5353;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        /* 수익률 색상 */
+        .profit-positive {
+            color: #53cf60;
+            font-weight: bold;
+        }
+
+        .profit-negative {
+            color: #cf5353;
+            font-weight: bold;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .btn-activate {
+            background: #1a4a2a;
+            color: #53cf60;
+        }
+
+        .btn-activate:hover {
+            background: #2a5a3a;
+        }
+
+        .btn-delete {
+            background: #3a2a2a;
+            color: #cf5353;
+        }
+
+        .btn-delete:hover {
+            background: #4a3a3a;
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: #12121f;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        /* 에러 */
+        .error {
+            text-align: center;
+            color: #cf5353;
+            padding: 20px;
+        }
+
+        /* 폼 스타일 */
+        .form-container {
+            display: none;
+            background: #12121f;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .form-container.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-save {
+            background: #0f3460;
+            color: #00d4ff;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #1a4a7a;
+        }
+
+        .btn-cancel {
+            background: #2a2a4a;
+            color: #888;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: #3a3a5a;
+        }
+
+        .btn-add {
+            background: #0f3460;
+            color: #00d4ff;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            float: right;
+            margin-top: -30px;
+        }
+
+        .btn-add:hover {
+            background: #1a4a7a;
+        }
+        .toggle-btn {
+            padding: 8px 16px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            color: #888;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .toggle-btn.active {
+            background: #00d4ff;
+            color: #000;
+            border-color: #00d4ff;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="header">
+    <h1>QuantMaster Dashboard</h1>
+    <div class="status" id="serverStatus">서버 연결 확인 중...</div>
+</div>
+
+<!-- 통계 요약 -->
+<div class="dashboard">
+    <div class="card full-width">
+        <h2>시스템 요약</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="value" id="totalStrategies">-</div>
+                <div class="label">전략 설정 수</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="activeStrategy">-</div>
+                <div class="label">활성 전략</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="totalBacktests">-</div>
+                <div class="label">백테스트 결과</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="bestProfit">-</div>
+                <div class="label">최고 수익률</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 전략 설정 -->
+    <div class="card">
+        <h2>전략 설정 관리</h2>
+        <button class="btn-add" onclick="toggleForm()">+ 새 전략</button>
+
+        <div class="form-container" id="addForm">
+            <div class="form-group">
+                <label>설정 이름</label>
+                <input type="text" id="formName"
+                       placeholder="예: 공격형 전략">
+            </div>
+            <div class="form-group">
+                <label>전략 조합 (콤마 구분)</label>
+                <input type="text" id="formStrategies"
+                       placeholder="예: EMA,RSI,BBB">
+            </div>
+            <div class="form-group">
+                <label>메인 모델</label>
+                <select id="formModel">
+                    <option value="LSTM">LSTM</option>
+                    <option value="Transformer">Transformer+GRU</option>
+                    <option value="LightGBM">LightGBM</option>
+                    <option value="None">없음</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Entry Threshold</label>
+                <input type="number" id="formThreshold"
+                       value="2" min="1" max="20">
+            </div>
+            <div class="form-actions">
+                <button class="btn-save" onclick="saveStrategy()">
+                    저장</button>
+                <button class="btn-cancel" onclick="toggleForm()">
+                    취소</button>
+            </div>
+        </div>
+
+        <div id="strategyTable">
+            <div class="loading">로딩 중...</div>
+        </div>
+    </div>
+
+    <!-- 백테스트 실행 -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <h2>🔬 백테스트 실행</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">종목 코드</label>
+                <input id="btCode" value="AAPL" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">시작일</label>
+                <input id="btStart" type="date" value="2024-01-01" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">종료일</label>
+                <input id="btEnd" type="date" value="2024-12-31" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">Threshold</label>
+                <input id="btThreshold" type="number" value="1" min="1" max="10" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="color: #888; font-size: 0.85rem;">전략 선택</label>
+            <div id="strategyToggles" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                <span class="toggle-btn active" data-strategy="EMA" onclick="this.classList.toggle('active')">EMA</span>
+                <span class="toggle-btn active" data-strategy="RSI" onclick="this.classList.toggle('active')">RSI</span>
+                <span class="toggle-btn" data-strategy="BBB" onclick="this.classList.toggle('active')">BBB</span>
+                <span class="toggle-btn" data-strategy="TTM" onclick="this.classList.toggle('active')">TTM</span>
+                <span class="toggle-btn" data-strategy="MACD" onclick="this.classList.toggle('active')">MACD</span>
+                <span class="toggle-btn" data-strategy="EMA3" onclick="this.classList.toggle('active')">EMA3</span>
+                <span class="toggle-btn" data-strategy="SUT" onclick="this.classList.toggle('active')">SUT</span>
+                <span class="toggle-btn" data-strategy="PSAR" onclick="this.classList.toggle('active')">PSAR</span>
+            </div>
+        </div>
+
+        <button onclick="runBacktest()" id="btRunBtn" style="padding: 10px 30px; background: #00d4ff; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+            🚀 백테스트 실행
+        </button>
+
+        <div id="btResult" style="margin-top: 15px; display: none;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                <div class="stat-card"><div id="btProfit" class="value">-</div><div class="label">수익률</div></div>
+                <div class="stat-card"><div id="btWinRate" class="value">-</div><div class="label">승률</div></div>
+                <div class="stat-card"><div id="btTrades" class="value">-</div><div class="label">거래 횟수</div></div>
+                <div class="stat-card"><div id="btMDD" class="value">-</div><div class="label">MDD</div></div>
+            </div>
+            <div style="margin-top: 15px;">
+                <canvas id="tradeChart" height="80"></canvas>
+            </div>
+    </div>
+</div>
+
+    <!-- 백테스트 결과 -->
+    <div class="card">
+        <h2>백테스트 결과 (수익률 TOP)</h2>
+        <div id="backtestTable">
+            <div class="loading">로딩 중...</div>
+        </div>
+    </div>
+
+    <!-- 주식 차트 -->
+    <div class="card full-width">
+        <h2>AAPL 종가 차트</h2>
+        <canvas id="stockChart" height="100"></canvas>
+    </div>
+
+    <!-- 주식 데이터 테이블 -->
+    <div class="card full-width">
+        <h2>최근 주식 데이터 (AAPL)</h2>
+        <div id="stockTable">
+            <div class="loading">로딩 중...</div>
+        </div>
+    </div>
+    <!-- 모의투자 시뮬레이터 -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <h2>💰 모의투자 시뮬레이터</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">종목 코드</label>
+                <input id="simCode" value="AAPL" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">시작일</label>
+                <input id="simStart" type="date" value="2024-01-01" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">종료일</label>
+                <input id="simEnd" type="date" value="2024-12-31" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">초기 자금 ($)</label>
+                <input id="simCash" type="number" value="10000" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="color: #888; font-size: 0.85rem;">Threshold</label>
+                <input id="simThreshold" type="number" value="1" min="1" max="10" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="color: #888; font-size: 0.85rem;">전략 선택</label>
+            <div id="simToggles" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                <span class="toggle-btn active" data-strategy="EMA" onclick="this.classList.toggle('active')">EMA</span>
+                <span class="toggle-btn active" data-strategy="RSI" onclick="this.classList.toggle('active')">RSI</span>
+                <span class="toggle-btn" data-strategy="BBB" onclick="this.classList.toggle('active')">BBB</span>
+                <span class="toggle-btn" data-strategy="TTM" onclick="this.classList.toggle('active')">TTM</span>
+                <span class="toggle-btn" data-strategy="MACD" onclick="this.classList.toggle('active')">MACD</span>
+                <span class="toggle-btn" data-strategy="EMA3" onclick="this.classList.toggle('active')">EMA3</span>
+                <span class="toggle-btn" data-strategy="SUT" onclick="this.classList.toggle('active')">SUT</span>
+                <span class="toggle-btn" data-strategy="PSAR" onclick="this.classList.toggle('active')">PSAR</span>
+            </div>
+        </div>
+
+        <button onclick="runSimulation()" id="simRunBtn" style="padding: 10px 30px; background: #53cf60; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+            💰 모의투자 시작
+        </button>
+
+        <div id="simResult" style="margin-top: 15px; display: none;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                <div class="stat-card"><div id="simInitial" class="value">-</div><div class="label">초기 자금</div></div>
+                <div class="stat-card"><div id="simFinal" class="value">-</div><div class="label">최종 자산</div></div>
+                <div class="stat-card"><div id="simReturn" class="value">-</div><div class="label">수익률</div></div>
+                <div class="stat-card"><div id="simTradeCount" class="value">-</div><div class="label">거래 횟수</div></div>
+            </div>
+            <canvas id="portfolioChart" height="80"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    const API = "http://localhost:8080/api";
+
+    // ====== 페이지 로드 시 전체 데이터 가져오기 ======
+    window.onload = function () {
+        loadStrategies();
+        loadBacktests();
+        loadStockData();
+        document.getElementById("serverStatus").textContent =
+            "서버 연결됨 ✓";
+        document.getElementById("serverStatus").style.color = "#53cf60";
+    };
+
+    // ====== 전략 설정 로드 ======
+    async function loadStrategies() {
+        try {
+            const res = await fetch(`${API}/strategy`);
+            const result = await res.json();
+            const data = result.data;
+
+            document.getElementById("totalStrategies").textContent =
+                data.length;
+
+            // 활성 전략 찾기
+            const active = data.find((d) => d.isActive === true);
+            document.getElementById("activeStrategy").textContent =
+                active ? active.name : "없음";
+
+            if (data.length === 0) {
+                document.getElementById("strategyTable").innerHTML =
+                    '<div class="loading">등록된 전략이 없습니다.</div>';
+                return;
+            }
+
+            let html = `<table>
+                <tr>
+                    <th>이름</th>
+                    <th>전략 조합</th>
+                    <th>Threshold</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>`;
+
+            for (const s of data) {
+                const badge = s.isActive
+                    ? '<span class="badge-active">활성</span>'
+                    : '<span class="badge-inactive">비활성</span>';
+
+                const buttons = s.isActive
+                    ? ""
+                    : `<button class="btn btn-activate"
+                         onclick="activateStrategy(${s.id})">
+                         활성화</button>
+                       <button class="btn btn-delete"
+                         onclick="deleteStrategy(${s.id})">
+                         삭제</button>`;
+
+                html += `<tr>
+                    <td>${s.name}</td>
+                    <td>${s.activeStrategies}</td>
+                    <td>${s.entryThreshold}</td>
+                    <td>${badge}</td>
+                    <td>${buttons}</td>
+                </tr>`;
+            }
+
+            html += "</table>";
+            document.getElementById("strategyTable").innerHTML = html;
+        } catch (e) {
+            document.getElementById("strategyTable").innerHTML =
+                '<div class="error">전략 데이터 로드 실패</div>';
+        }
+    }
+
+    // ====== 백테스트 결과 로드 ======
+    async function loadBacktests() {
+        try {
+            const res = await fetch(`${API}/backtest/AAPL/top`);
+            const result = await res.json();
+            const data = result.data;
+
+            document.getElementById("totalBacktests").textContent =
+                data.length;
+
+            if (data.length > 0) {
+                const best = data[0].totalProfitPct;
+                document.getElementById("bestProfit").textContent =
+                    best.toFixed(1) + "%";
+                document.getElementById("bestProfit").className =
+                    best >= 0 ? "value profit-positive"
+                              : "value profit-negative";
+            }
+
+            if (data.length === 0) {
+                document.getElementById("backtestTable").innerHTML =
+                    '<div class="loading">백테스트 결과가 없습니다.</div>';
+                return;
+            }
+
+            let html = `<table>
+                <tr>
+                    <th>전략 조합</th>
+                    <th>수익률</th>
+                    <th>승률</th>
+                    <th>MDD</th>
+                </tr>`;
+
+            for (const b of data) {
+                const profit = b.totalProfitPct || 0;
+                const winR = b.winRate || 0;
+                const mdd = b.maxDrawdownPct || 0;
+                const profitClass = profit >= 0
+                    ? "profit-positive" : "profit-negative";
+
+                html += `<tr>
+                    <td>${b.strategies}</td>
+                    <td class="${profitClass}">
+                        ${profit.toFixed(1)}%</td>
+                    <td>${winR.toFixed(1)}%</td>
+                    <td class="profit-negative">
+                        ${mdd.toFixed(1)}%</td>
+                </tr>`;
+                }
+
+
+            html += "</table>";
+            document.getElementById("backtestTable").innerHTML = html;
+        } catch (e) {
+            document.getElementById("backtestTable").innerHTML =
+                '<div class="error">백테스트 데이터 로드 실패</div>';
+        }
+    }
+
+    // ====== 주식 데이터 로드 ======
+    // ====== 주식 데이터 로드 ======
+        async function loadStockData() {
+            try {
+                const res = await fetch(`${API}/stock/AAPL?timeframe=1d`);
+                const result = await res.json();
+                const data = result.data;
+
+                // ====== 차트 그리기 ======
+                const labels = data.map(s => s.tradeTime.substring(5, 10));
+                const closes = data.map(s => s.close);
+                const volumes = data.map(s => s.volume);
+
+                new Chart(document.getElementById("stockChart"), {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "종가 ($)",
+                                data: closes,
+                                borderColor: "#00d4ff",
+                                backgroundColor: "rgba(0,212,255,0.1)",
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                yAxisID: "y"
+                            },
+                            {
+                                label: "거래량",
+                                data: volumes,
+                                type: "bar",
+                                backgroundColor: "rgba(83,207,96,0.3)",
+                                yAxisID: "y1"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: "#888" }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: "#666", maxTicksLimit: 15 },
+                                grid: { color: "#1a1a2e" }
+                            },
+                            y: {
+                                position: "left",
+                                ticks: { color: "#00d4ff" },
+                                grid: { color: "#1a1a2e" }
+                            },
+                            y1: {
+                                position: "right",
+                                ticks: { color: "#53cf60" },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+
+                // ====== 테이블도 유지 ======
+                const recent = data.slice(-10);
+
+                if (recent.length === 0) {
+                    document.getElementById("stockTable").innerHTML =
+                        '<div class="loading">주식 데이터가 없습니다.</div>';
+                    return;
+                }
+
+                let html = `<table>
+                    <tr>
+                        <th>날짜</th>
+                        <th>시가</th>
+                        <th>고가</th>
+                        <th>저가</th>
+                        <th>종가</th>
+                        <th>거래량</th>
+                    </tr>`;
+
+                for (const s of recent) {
+                    const date = s.tradeTime.substring(0, 10);
+                    html += `<tr>
+                        <td>${date}</td>
+                        <td>$${s.open.toFixed(2)}</td>
+                        <td>$${s.high.toFixed(2)}</td>
+                        <td>$${s.low.toFixed(2)}</td>
+                        <td>$${s.close.toFixed(2)}</td>
+                        <td>${s.volume.toLocaleString()}</td>
+                    </tr>`;
+                }
+
+                html += "</table>";
+                document.getElementById("stockTable").innerHTML = html;
+            } catch (e) {
+                document.getElementById("stockTable").innerHTML =
+                    '<div class="error">주식 데이터 로드 실패</div>';
+            }
+        }
+
+    // ====== 전략 활성화 ======
+    async function activateStrategy(id) {
+        await fetch(`${API}/strategy/${id}/activate`, {
+            method: "PUT"
+        });
+        loadStrategies();
+    }
+
+    // ====== 전략 삭제 ======
+    async function deleteStrategy(id) {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            await fetch(`${API}/strategy/${id}`, {
+                method: "DELETE"
+            });
+            loadStrategies();
+        }
+    }
+
+    // ====== 폼 토글 ======
+        function toggleForm() {
+            const form = document.getElementById("addForm");
+            form.classList.toggle("show");
+        }
+
+        // ====== 전략 저장 ======
+        async function saveStrategy() {
+            const name = document.getElementById("formName").value;
+            const strategies =
+                document.getElementById("formStrategies").value;
+            const model = document.getElementById("formModel").value;
+            const threshold =
+                document.getElementById("formThreshold").value;
+
+            if (!name || !strategies) {
+                alert("이름과 전략 조합을 입력해주세요!");
+                return;
+            }
+
+            const data = {
+                name: name,
+                activeStrategies: strategies,
+                mainModel: model,
+                entryThreshold: parseInt(threshold),
+                parameters: "{}"
+            };
+
+            await fetch(`${API}/strategy`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            // 폼 초기화 & 닫기
+            document.getElementById("formName").value = "";
+            document.getElementById("formStrategies").value = "";
+            toggleForm();
+
+            // 화면 갱신
+            loadStrategies();
+        }
+
+let tradeChartInstance = null;
+
+function drawTradeChart(data) {
+    // 이전 차트 제거
+    if (tradeChartInstance) {
+        tradeChartInstance.destroy();
+    }
+
+    const trades = data.trades || [];
+    if (trades.length === 0) return;
+
+    // 날짜순 정렬
+    const labels = trades.map(t => t.date);
+    const prices = trades.map(t => t.price);
+
+    // 매수/매도 분리
+    const buyPoints = trades.map(t =>
+        t.type === 'BUY' ? t.price : null);
+    const sellPoints = trades.map(t =>
+        t.type === 'SELL' ? t.price : null);
+
+    const ctx = document.getElementById('tradeChart');
+    tradeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '주가',
+                    data: prices,
+                    borderColor: '#00d4ff',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3,
+                    fill: false
+                },
+                {
+                    label: '매수 (BUY)',
+                    data: buyPoints,
+                    borderColor: 'transparent',
+                    backgroundColor: '#53cf60',
+                    pointRadius: 8,
+                    pointStyle: 'triangle',
+                    showLine: false
+                },
+                {
+                    label: '매도 (SELL)',
+                    data: sellPoints,
+                    borderColor: 'transparent',
+                    backgroundColor: '#cf5353',
+                    pointRadius: 8,
+                    pointStyle: 'triangle',
+                    pointRotation: 180,
+                    showLine: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#888' }
+                },
+                title: {
+                    display: true,
+                    text: '매매 포인트 차트',
+                    color: '#00d4ff',
+                    font: { size: 14 }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666' },
+                    grid: { color: '#1a1a2e' }
+                },
+                y: {
+                    ticks: { color: '#00d4ff' },
+                    grid: { color: '#1a1a2e' }
+                }
+            }
+        }
+    });
+}
+
+// 백테스트 실행
+async function runBacktest() {
+    const btn = document.getElementById("btRunBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 실행 중...";
+
+    // 선택된 전략 수집
+    const strategies = [];
+    document.querySelectorAll('.toggle-btn.active').forEach(btn => {
+        strategies.push(btn.dataset.strategy);
+    });
+
+    if (strategies.length === 0) {
+        alert("전략을 하나 이상 선택하세요!");
+        btn.disabled = false;
+        btn.textContent = "🚀 백테스트 실행";
+        return;
+    }
+
+    const params = {
+        code: document.getElementById("btCode").value,
+        startDate: document.getElementById("btStart").value,
+        endDate: document.getElementById("btEnd").value,
+        strategies: strategies,
+        threshold: parseInt(
+            document.getElementById("btThreshold").value)
+    };
+
+    try {
+        const res = await fetch(`${API}/backtest/run`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(params)
+        });
+        const result = await res.json();
+
+        // Python 결과는 문자열로 오니까 다시 파싱
+        let data;
+        if (typeof result.data === 'string') {
+            data = JSON.parse(result.data);
+        } else {
+            data = result.data;
+        }
+
+        // 결과 표시
+        const resultDiv = document.getElementById("btResult");
+        resultDiv.style.display = "block";
+
+        const profit = data.totalProfitPct || 0;
+        const profitEl = document.getElementById("btProfit");
+        profitEl.textContent = profit.toFixed(1) + "%";
+        profitEl.className = profit >= 0
+            ? "value profit-positive"
+            : "value profit-negative";
+
+        document.getElementById("btWinRate").textContent =
+            (data.winRate || 0).toFixed(1) + "%";
+        document.getElementById("btTrades").textContent =
+            data.totalTrades || 0;
+
+        const mdd = data.maxDrawdownPct || 0;
+        const mddEl = document.getElementById("btMDD");
+        mddEl.textContent = mdd.toFixed(1) + "%";
+        mddEl.className = "value profit-negative";
+
+        drawTradeChart(data);
+        // 백테스트 결과 테이블 새로고침
+        loadBacktests();
+
+    } catch (e) {
+        alert("백테스트 실행 실패: " + e.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = "🚀 백테스트 실행";
+}
+
+    let portfolioChartInstance = null;
+
+async function runSimulation() {
+    const btn = document.getElementById("simRunBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 실행 중...";
+
+    const strategies = [];
+    document.querySelectorAll('#simToggles .toggle-btn.active')
+        .forEach(b => strategies.push(b.dataset.strategy));
+
+    if (strategies.length === 0) {
+        alert("전략을 하나 이상 선택하세요!");
+        btn.disabled = false;
+        btn.textContent = "💰 모의투자 시작";
+        return;
+    }
+
+    const params = {
+        code: document.getElementById("simCode").value,
+        startDate: document.getElementById("simStart").value,
+        endDate: document.getElementById("simEnd").value,
+        strategies: strategies,
+        threshold: parseInt(
+            document.getElementById("simThreshold").value),
+        initialCash: parseInt(
+            document.getElementById("simCash").value)
+    };
+
+    try {
+        const res = await fetch(`${API}/backtest/simulation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(params)
+        });
+        const result = await res.json();
+
+        let data;
+        if (typeof result.data === 'string') {
+            data = JSON.parse(result.data);
+        } else {
+            data = result.data;
+        }
+
+        // 결과 표시
+        const resultDiv = document.getElementById("simResult");
+        resultDiv.style.display = "block";
+
+        document.getElementById("simInitial").textContent =
+            "$" + (data.initialCash || 0).toLocaleString();
+        document.getElementById("simFinal").textContent =
+            "$" + (data.finalValue || 0).toLocaleString();
+
+        const ret = data.totalReturn || 0;
+        const retEl = document.getElementById("simReturn");
+        retEl.textContent = ret.toFixed(1) + "%";
+        retEl.className = ret >= 0
+            ? "value profit-positive"
+            : "value profit-negative";
+
+        const tradeCount = (data.trades || []).length;
+        document.getElementById("simTradeCount").textContent =
+            Math.floor(tradeCount / 2);
+
+        // 자산 변화 차트
+        drawPortfolioChart(data);
+
+    } catch (e) {
+        alert("모의투자 실행 실패: " + e.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = "💰 모의투자 시작";
+}
+
+function drawPortfolioChart(data) {
+    if (portfolioChartInstance) {
+        portfolioChartInstance.destroy();
+    }
+
+    const portfolio = data.portfolio || [];
+    if (portfolio.length === 0) return;
+
+    // 날짜 라벨 간소화 (매 10번째만 표시)
+    const labels = portfolio.map((p, i) =>
+        i % 10 === 0 ? p.date.substring(5) : '');
+    const values = portfolio.map(p => p.value);
+    const prices = portfolio.map(p => p.price);
+
+    // 초기 자금 기준선
+    const baseline = new Array(portfolio.length)
+        .fill(data.initialCash);
+
+    const ctx = document.getElementById('portfolioChart');
+    portfolioChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '내 자산 ($)',
+                    data: values,
+                    borderColor: '#53cf60',
+                    backgroundColor: 'rgba(83,207,96,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: '초기 자금',
+                    data: baseline,
+                    borderColor: '#666',
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    borderWidth: 1,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#888' }
+                },
+                title: {
+                    display: true,
+                    text: '자산 변화 추이',
+                    color: '#53cf60',
+                    font: { size: 14 }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxTicksLimit: 12 },
+                    grid: { color: '#1a1a2e' }
+                },
+                y: {
+                    ticks: {
+                        color: '#53cf60',
+                        callback: function(v) {
+                            return '$' + v.toLocaleString();
+                        }
+                    },
+                    grid: { color: '#1a1a2e' }
+                }
+            }
+        }
+    });
+}
+
+</script>
+</body>
+</html>
