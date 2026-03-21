@@ -21,6 +21,59 @@ public class BacktestRunService {
     @Value("${backtest.script-path:C:/QuantMaster/agent/backtest_runner.py}")
     private String scriptPath;
 
+    public String runLSTMPrediction(String code, int days) {
+        String paramsJson = String.format(
+                "{\"code\":\"%s\",\"days\":%d}",
+                code, days);
+
+        log.info("[LSTM 예측] 파라미터: {}", paramsJson);
+
+        try {
+            Path tempFile = Files.createTempFile("lstm_", ".json");
+            Files.writeString(tempFile, paramsJson);
+
+            // lstm_service.py 경로
+            String lstmScript = scriptPath.replace("backtest_runner.py", "lstm_service.py");
+
+            ProcessBuilder pb = new ProcessBuilder(pythonPath, lstmScript, tempFile.toString());
+            pb.redirectErrorStream(false);
+
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            BufferedReader errReader = new BufferedReader(
+                    new InputStreamReader(process.getErrorStream()));
+
+            // stderr는 로그로
+            String errLine;
+            while ((errLine = errReader.readLine()) != null) {
+                log.info("[LSTM] {}", errLine);
+            }
+
+            // stdout에서 JSON 읽기
+            String line;
+            String lastLine = "";
+            while ((line = reader.readLine()) != null) {
+                lastLine = line;
+            }
+
+            int exitCode = process.waitFor();
+            Files.delete(tempFile);
+
+            if (exitCode == 0) {
+                log.info("[LSTM 예측] 완료!");
+                return lastLine;
+            } else {
+                log.error("[LSTM 예측] 실패. 종료코드: {}", exitCode);
+                return "{\"error\":\"LSTM 예측 실패\"}";
+            }
+        } catch (Exception e) {
+            log.error("[LSTM 예측] 에러: {}", e.getMessage());
+            return "{\"error\":\"" + e.getMessage() + "\"}";
+        }
+    }
+
     public String runBacktest(String code, String startDate, String endDate, List<String> strategies, int threshold) {
         String strategiesJson = "[" + String.join(",", strategies.stream().map(s -> "\"" + s + "\"").toList()) + "]";
         String paramsJson = String.format(

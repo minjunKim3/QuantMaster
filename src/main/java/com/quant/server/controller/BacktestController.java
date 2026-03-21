@@ -85,6 +85,17 @@ public class BacktestController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    @PostMapping("/predict")
+    public ResponseEntity<ApiResponse<String>> predict(@RequestBody Map<String, Object> params) {
+        String code = (String) params.getOrDefault("code", "KS11");
+        int days = ((Number) params.getOrDefault("days", 100)).intValue();
+
+        log.info("[LSTM 예측] {} | 최근 {}일", code, days);
+
+        String result = backtestRunService.runLSTMPrediction(code, days);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
 
     private Double toDouble(Object obj) {
 
