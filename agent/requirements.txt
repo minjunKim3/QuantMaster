@@ -3,6 +3,7 @@ pandas
 numpy
 requests
 finance-datareader
-torch
 scikit-learn
 matplotlib
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
