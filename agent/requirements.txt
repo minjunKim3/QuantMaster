@@ -2,3 +2,7 @@ yfinance
 pandas
 numpy
 requests
+finance-datareader
+torch
+scikit-learn
+matplotlib

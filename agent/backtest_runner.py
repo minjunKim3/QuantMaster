@@ -5,10 +5,32 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import torch
+import torch.nn as nn
+from sklearn.preprocessing import MinMaxScaler
+import os
+import FinanceDataReader as fdr
 
-# ============================================
-# 전략 함수들 (조원분 로직 기반)
-# ============================================
+current_code = 'AAPL'
+
+def is_korean_stock(code):
+    """한국 종목인지 판별: 숫자 6자리이거나 KS11, KQ11 등"""
+    if code in ['KS11', 'KQ11', 'KS200']:
+        return True
+    if code.isdigit() and len(code) == 6:
+        return True
+    return False
+
+def fetch_stock_data(code, start_date, end_date):
+    """종목 코드에 따라 적절한 라이브러리로 데이터 가져오기"""
+    if is_korean_stock(code):
+        df = fdr.DataReader(code, start_date, end_date)
+        # FinanceDataReader는 컬럼명이 이미 Open, High, Low, Close, Volume
+        return df
+    else:
+        ticker = yf.Ticker(code)
+        df = ticker.history(start=start_date, end=end_date)
+        return df
 
 def calc_ema(series, period):
     """EMA(지수이동평균) 계산"""
@@ -224,6 +246,120 @@ def strategy_psar(df, af_start=0.02, af_max=0.2):
     return buy, sell
 
 # ============================================
+# LSTM 모델 정의 (학습 때와 동일해야 함)
+# ============================================
+class StockLSTM_V2(nn.Module):
+    def __init__(self, input_size, hidden_size=64, num_layers=2):
+        super(StockLSTM_V2, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers,
+                           batch_first=True, dropout=0.2)
+        self.fc1 = nn.Linear(hidden_size, 32)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(32, 1)
+    
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        out = out[:, -1, :]
+        out = self.relu(self.fc1(out))
+        out = self.fc2(out)
+        return out.squeeze()
+
+# ============================================
+# LSTM 전략 함수
+# ============================================
+def strategy_lstm(df):
+    """LSTM AI 전략: 예측 종가가 현재보다 높으면 매수, 낮으면 매도"""
+    
+    global current_code
+    
+    # 모델 파일 경로 (backtest_runner.py와 같은 폴더에 .pth가 있어야 함)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # 종목별 모델 찾기
+    safe_code = current_code.replace('^', '').replace('/', '_')
+    model_path = os.path.join(script_dir, 'models', f'{safe_code}_lstm.pth')
+
+    # 종목 전용 모델이 없으면 코스피 모델로 대체
+    if not os.path.exists(model_path):
+        model_path = os.path.join(script_dir, 'models', 'KS11_lstm.pth')
+    
+    # 모델 파일이 없으면 신호 없음으로 리턴
+    if not os.path.exists(model_path):
+        print("[LSTM] 모델 파일 없음, 신호 없이 진행", file=sys.stderr)
+        return pd.Series(0, index=df.index), pd.Series(0, index=df.index)
+    
+    # 1. 특성 생성 (학습 때와 동일하게!)
+    close = df['Close']
+    features_df = pd.DataFrame(index=df.index)
+    features_df['Close'] = close
+    features_df['MA5'] = close.rolling(5).mean()
+    features_df['MA20'] = close.rolling(20).mean()
+    
+    delta = close.diff()
+    gain = delta.where(delta > 0, 0).rolling(14).mean()
+    loss_val = (-delta.where(delta < 0, 0)).rolling(14).mean()
+    features_df['RSI'] = 100 - (100 / (1 + gain / (loss_val + 1e-10)))
+    features_df['Change'] = close.pct_change()
+    features_df['Volume'] = df['Volume'] / (df['Volume'].max() + 1e-10)
+    
+    # 결측치를 앞쪽 값으로 채우기
+    features_df.ffill(inplace=True)
+    features_df.fillna(0, inplace=True)
+    
+    # 2. 정규화 (특성별 개별 scaler)
+    scaler_dict = {}
+    scaled_df = pd.DataFrame(index=features_df.index)
+    for col in features_df.columns:
+        scaler = MinMaxScaler()
+        vals = features_df[[col]]
+        if vals.max().values[0] == vals.min().values[0]:
+            scaled_df[col] = 0.5
+        else:
+            scaled_df[col] = scaler.fit_transform(vals).flatten()
+        scaler_dict[col] = scaler
+    
+    close_scaler = scaler_dict['Close']
+    scaled = scaled_df.values
+    
+    # 3. 모델 로드
+    input_size = len(features_df.columns)
+    model = StockLSTM_V2(input_size=input_size)
+    model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True))
+    model.eval()
+    
+    # 4. 매일 예측해서 매수/매도 신호 생성
+    WINDOW = 60
+    close_idx = list(features_df.columns).index('Close')
+    
+    buy_signals = pd.Series(0, index=df.index)
+    sell_signals = pd.Series(0, index=df.index)
+    
+    for i in range(WINDOW, len(scaled)):
+        # 과거 60일 데이터로 내일 종가 예측
+        window_data = scaled[i - WINDOW:i]
+        X = torch.FloatTensor(window_data).unsqueeze(0)
+        
+        with torch.no_grad():
+            pred_scaled = model(X).item()
+        
+        # 예측 종가를 원래 스케일로 복원
+        pred_price = close_scaler.inverse_transform([[pred_scaled]])[0][0]
+        current_price = df['Close'].iloc[i]
+        
+        # 예측이 현재보다 0.5% 이상 높으면 매수
+        # 예측이 현재보다 0.5% 이상 낮으면 매도
+        # (0.5% 기준을 두는 이유: 너무 작은 차이에 반응하면 거짓 신호가 많아져서)
+        change_pct = (pred_price - current_price) / current_price
+        
+        if change_pct > 0.005:
+            buy_signals.iloc[i] = 1
+        elif change_pct < -0.005:
+            sell_signals.iloc[i] = 1
+    
+    print(f"[LSTM] 매수신호: {buy_signals.sum()}개, 매도신호: {sell_signals.sum()}개", file=sys.stderr)
+    
+    return buy_signals.astype(int), sell_signals.astype(int)
+
+# ============================================
 # 앙상블 투표 (MainStrategy 로직)
 # ============================================
 
@@ -236,6 +372,7 @@ STRATEGIES = {
     'EMA3' : strategy_ema3,
     'SUT' : strategy_supertrend,
     'PSAR' : strategy_psar,
+    'LSTM': strategy_lstm,
 }
 
 def run_ensemble(df, active_strategies, threshold=2):
@@ -262,11 +399,10 @@ def run_ensemble(df, active_strategies, threshold=2):
 
 def run_backtest(code, start_date, end_date, active_strategies,
                  threshold=2, initial_cash=10000):
-    """실제 데이터로 백테스트 실행"""
+    global current_code
+    current_code = code
     
-    # 1. 실제 주식 데이터 다운로드
-    ticker = yf.Ticker(code)
-    df = ticker.history(start=start_date, end=end_date)
+    df = fetch_stock_data(code, start_date, end_date)
 
     if df.empty:
         print(json.dumps({"error": f"데이터 없음: {code}"}))
@@ -382,10 +518,10 @@ def run_backtest(code, start_date, end_date, active_strategies,
 
 def run_simulation(code, start_date, end_date, active_strategies,
                    threshold=2, initial_cash=10000):
-    """모의투자 시뮬레이션 - 매일 자산 변화 추적"""
+    global current_code
+    current_code = code
     
-    ticker = yf.Ticker(code)
-    df = ticker.history(start=start_date, end=end_date)
+    df = fetch_stock_data(code, start_date, end_date)
     
     if df.empty:
         return None
