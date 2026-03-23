@@ -96,6 +96,17 @@ public class BacktestController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    @PostMapping("/agent")
+    public ResponseEntity<ApiResponse<String>> agentAnalysis(@RequestBody Map<String, Object> params) {
+        String query = (String) params.getOrDefault("query", "");
+        int days = ((Number) params.getOrDefault("days", 7)).intValue();
+
+        log.info("[AI Agent] {} | {}일", query, days);
+
+        String result = backtestRunService.runAgentAnalysis(query, days);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
 
     private Double toDouble(Object obj) {
 

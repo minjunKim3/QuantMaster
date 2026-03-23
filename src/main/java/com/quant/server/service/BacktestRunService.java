@@ -157,4 +157,45 @@ public class BacktestRunService {
             return "{\"error\":\"" + e.getMessage() + "\"}:";
         }
     }
+
+    public String runAgentAnalysis(String query, int days) {
+        String paramsJson = String.format(
+                "{\"query\":\"%s\",\"days\":%d}",
+                query, days);
+
+        log.info("[AI Agent] 분석 요청: {}", query);
+
+        try {
+            Path tempFile = Files.createTempFile("agent_", ".json");
+            Files.writeString(tempFile, paramsJson);
+
+            String agentScript = scriptPath.replace("backtest_runner.py", "agent_analysis.py");
+
+            ProcessBuilder pb = new ProcessBuilder(pythonPath, agentScript, tempFile.toString());
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), "UTF-8"));
+            String line;
+            String lastLine = "";
+            while ((line = reader.readLine()) != null) {
+                lastLine = line;
+            }
+
+            int exitCode = process.waitFor();
+            Files.delete(tempFile);
+
+            if (exitCode == 0) {
+                log.info("[AI Agent] 분석 완료!");
+                return lastLine;
+            } else {
+                return "{\"error\":\"AI Agent 분석 실패\"}";
+            }
+        } catch (Exception e) {
+            log.error("[AI Agent] 에러: {}", e.getMessage());
+            return "{\"error\":\"" + e.getMessage() + "\"}";
+        }
+    }
 }

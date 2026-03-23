@@ -524,6 +524,45 @@
             <canvas id="predictionChart"></canvas>
         </div>
     </div>
+    <div class="card">
+        <h2>🤖 AI Agent 주식 분석</h2>
+        <div class="form-row">
+            <div style="flex:3">
+                <label>분석 요청</label>
+                <input type="text" id="agentQuery" value="일주일간 저평가된 변동성 큰 주식 추천해줘" placeholder="분석 요청을 입력하세요">
+            </div>
+            <div style="flex:1">
+                <label>분석 기간 (일)</label>
+                <input type="number" id="agentDays" value="7">
+            </div>
+        </div>
+        <button class="btn btn-activate" id="agentRunBtn" onclick="runAgentAnalysis()">
+            🤖 AI 분석 실행
+        </button>
+        <div id="agentResult" style="display:none; margin-top: 15px;">
+            <div class="summary-grid">
+                <div>
+                    <span class="value" id="agentDate">-</span>
+                    <span class="label">분석일</span>
+                </div>
+                <div>
+                    <span class="value" id="agentScanned">0</span>
+                    <span class="label">스캔 종목 수</span>
+                </div>
+                <div>
+                    <span class="value" id="agentTop">-</span>
+                    <span class="label">1위 종목</span>
+                </div>
+                <div>
+                    <span class="value" id="agentTopScore">0</span>
+                    <span class="label">최고 점수</span>
+                </div>
+            </div>
+            <canvas id="agentScoreChart"></canvas>
+            <canvas id="agentRadarChart" style="margin-top:20px;"></canvas>
+            <div id="agentTable" style="margin-top:20px;"></div>
+        </div>
+    </div>
 
 
 
@@ -1253,7 +1292,199 @@ function drawPredictionChart(data) {
         }
     });
 }
+    let agentScoreChartInstance = null;
+let agentRadarChartInstance = null;
 
+async function runAgentAnalysis() {
+    const btn = document.getElementById("agentRunBtn");
+    btn.disabled = true;
+    btn.textContent = "⏳ 분석 중... (1~2분 소요)";
+
+    const params = {
+        query: document.getElementById("agentQuery").value,
+        days: parseInt(document.getElementById("agentDays").value)
+    };
+
+    try {
+        const res = await fetch(`${API}/backtest/agent`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(params)
+        });
+        const result = await res.json();
+
+        let data;
+        if (typeof result.data === 'string') {
+            data = JSON.parse(result.data);
+        } else {
+            data = result.data;
+        }
+
+        if (data.error) {
+            alert("분석 실패: " + data.error);
+            btn.disabled = false;
+            btn.textContent = "🤖 AI 분석 실행";
+            return;
+        }
+
+        const resultDiv = document.getElementById("agentResult");
+        resultDiv.style.display = "block";
+
+        document.getElementById("agentDate").textContent = data.analysisDate;
+        document.getElementById("agentScanned").textContent = data.totalScanned;
+        document.getElementById("agentTop").textContent =
+            data.top5[0].name + "(" + data.top5[0].code + ")";
+        document.getElementById("agentTopScore").textContent = data.top5[0].score;
+
+        drawAgentScoreChart(data.top5);
+        drawAgentRadarChart(data.top5);
+        drawAgentTable(data.candidates);
+
+    } catch (e) {
+        alert("AI Agent 실행 실패: " + e.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = "🤖 AI 분석 실행";
+}
+
+function drawAgentScoreChart(top5) {
+    if (agentScoreChartInstance) agentScoreChartInstance.destroy();
+
+    const labels = top5.map(s => s.name);
+    const scores = top5.map(s => s.score);
+    const colors = ['#ff6b6b', '#ffa502', '#2ed573', '#1e90ff', '#a55eea'];
+
+    const ctx = document.getElementById('agentScoreChart');
+    agentScoreChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '종합 점수',
+                data: scores,
+                backgroundColor: colors.map(c => c + '88'),
+                borderColor: colors,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'TOP 5 종목 점수',
+                    color: '#00d4ff',
+                    font: { size: 14 }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#888' },
+                    grid: { color: '#1a1a2e' }
+                },
+                y: {
+                    ticks: { color: '#ddd', font: { size: 13 } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function drawAgentRadarChart(top5) {
+    if (agentRadarChartInstance) agentRadarChartInstance.destroy();
+
+    const maxVals = {
+        price_chg: Math.max(...top5.map(s => Math.abs(s.price_chg))) || 1,
+        rsi: 100,
+        vol_ratio: Math.max(...top5.map(s => s.vol_ratio)) || 1,
+        volatility: Math.max(...top5.map(s => s.volatility)) || 1,
+        score: Math.max(...top5.map(s => s.score)) || 1
+    };
+
+    const colors = [
+        'rgba(255,107,107,0.6)', 'rgba(255,165,2,0.6)',
+        'rgba(46,213,115,0.6)', 'rgba(30,144,255,0.6)',
+        'rgba(165,94,234,0.6)'
+    ];
+
+    const datasets = top5.map((s, i) => ({
+        label: s.name,
+        data: [
+            Math.abs(s.price_chg) / maxVals.price_chg * 100,
+            s.rsi,
+            s.vol_ratio / maxVals.vol_ratio * 100,
+            s.volatility / maxVals.volatility * 100,
+            s.score / maxVals.score * 100
+        ],
+        backgroundColor: colors[i].replace('0.6', '0.15'),
+        borderColor: colors[i],
+        borderWidth: 2,
+        pointRadius: 3
+    }));
+
+    const ctx = document.getElementById('agentRadarChart');
+    agentRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['수익률', 'RSI', '거래량', '변동성', '점수'],
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'TOP 5 종목 지표 비교',
+                    color: '#00d4ff',
+                    font: { size: 14 }
+                },
+                legend: { labels: { color: '#888' } }
+            },
+            scales: {
+                r: {
+                    ticks: { color: '#666', backdropColor: 'transparent' },
+                    grid: { color: '#1a1a2e' },
+                    pointLabels: { color: '#aaa', font: { size: 12 } }
+                }
+            }
+        }
+    });
+}
+
+function drawAgentTable(candidates) {
+    if (!candidates || candidates.length === 0) {
+        document.getElementById("agentTable").innerHTML =
+            '<div class="loading">추가 후보 종목이 없습니다.</div>';
+        return;
+    }
+
+    let html = `<h3 style="color:#00d4ff;">추가 후보 종목</h3>
+        <table><tr>
+            <th>종목명(코드)</th>
+            <th>수익률</th>
+            <th>RSI</th>
+            <th>거래비율</th>
+            <th>점수</th>
+        </tr>`;
+
+    for (const s of candidates.slice(0, 20)) {
+        const profitClass = s.price_chg >= 0 ? 'profit-positive' : 'profit-negative';
+        html += `<tr>
+            <td>${s.name}(${s.code})</td>
+            <td class="${profitClass}">${s.price_chg}%</td>
+            <td>${s.rsi}</td>
+            <td>${s.vol_ratio}배</td>
+            <td>${s.score}</td>
+        </tr>`;
+    }
+
+    html += '</table>';
+    document.getElementById("agentTable").innerHTML = html;
+}
 </script>
 </body>
 </html>
