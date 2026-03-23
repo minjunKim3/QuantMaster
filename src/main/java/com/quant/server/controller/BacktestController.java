@@ -107,6 +107,18 @@ public class BacktestController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteBacktest(@PathVariable Long id) {
+        backtestResultService.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.ok("삭제 완료"));
+    }
+
+    @DeleteMapping("/clear")
+    public ResponseEntity<ApiResponse<String>> clearBacktests() {
+        backtestResultService.deleteAll();
+        return ResponseEntity.ok(ApiResponse.ok("전체 삭제 완료"));
+    }
+
 
     private Double toDouble(Object obj) {
 

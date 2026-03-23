@@ -57,4 +57,14 @@ public class BacktestResultService {
                 .findByMainModelOrderByTotalProfitPctDesc(mainModel);
     }
 
+    @Transactional
+    public void deleteById(Long id) {
+        backtestResultRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteAll() {
+        backtestResultRepository.deleteAll();
+    }
+
 }
