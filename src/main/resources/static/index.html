@@ -5,282 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuantMaster Dashboard</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #0f0f1a;
-            color: #e0e0e0;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 20px 40px;
-            border-bottom: 2px solid #0f3460;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            color: #00d4ff;
-        }
-
-        .header .status {
-            font-size: 14px;
-            color: #53cf60;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px 40px;
-        }
-
-        .card {
-            background: #1a1a2e;
-            border: 1px solid #2a2a4a;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .card h2 {
-            font-size: 16px;
-            color: #00d4ff;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #2a2a4a;
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* 전략 설정 테이블 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 10px 12px;
-            border-bottom: 1px solid #2a2a4a;
-            font-size: 14px;
-        }
-
-        th {
-            color: #888;
-            font-weight: normal;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        /* 활성/비활성 뱃지 */
-        .badge-active {
-            background: #1a4a2a;
-            color: #53cf60;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-
-        .badge-inactive {
-            background: #3a2a2a;
-            color: #cf5353;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-
-        /* 수익률 색상 */
-        .profit-positive {
-            color: #53cf60;
-            font-weight: bold;
-        }
-
-        .profit-negative {
-            color: #cf5353;
-            font-weight: bold;
-        }
-
-        /* 버튼 */
-        .btn {
-            padding: 5px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 4px;
-        }
-
-        .btn-activate {
-            background: #1a4a2a;
-            color: #53cf60;
-        }
-
-        .btn-activate:hover {
-            background: #2a5a3a;
-        }
-
-        .btn-delete {
-            background: #3a2a2a;
-            color: #cf5353;
-        }
-
-        .btn-delete:hover {
-            background: #4a3a3a;
-        }
-
-        /* 통계 카드 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-
-        .stat-item {
-            background: #12121f;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-item .value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00d4ff;
-        }
-
-        .stat-item .label {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        /* 로딩 */
-        .loading {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-        }
-
-        /* 에러 */
-        .error {
-            text-align: center;
-            color: #cf5353;
-            padding: 20px;
-        }
-
-        /* 폼 스타일 */
-        .form-container {
-            display: none;
-            background: #12121f;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 15px;
-        }
-
-        .form-container.show {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px 12px;
-            background: #1a1a2e;
-            border: 1px solid #2a2a4a;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 14px;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #00d4ff;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn-save {
-            background: #0f3460;
-            color: #00d4ff;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-save:hover {
-            background: #1a4a7a;
-        }
-
-        .btn-cancel {
-            background: #2a2a4a;
-            color: #888;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn-cancel:hover {
-            background: #3a3a5a;
-        }
-
-        .btn-add {
-            background: #0f3460;
-            color: #00d4ff;
-            padding: 6px 14px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            float: right;
-            margin-top: -30px;
-        }
-
-        .btn-add:hover {
-            background: #1a4a7a;
-        }
-        .toggle-btn {
-            padding: 8px 16px;
-            background: #1a1a2e;
-            border: 1px solid #333;
-            color: #888;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
-        .toggle-btn.active {
-            background: #00d4ff;
-            color: #000;
-            border-color: #00d4ff;
-            font-weight: bold;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px 40px; border-bottom: 2px solid #0f3460; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; color: #00d4ff; }
+        .header .status { font-size: 14px; color: #53cf60; }
+        .tab-nav { display: flex; gap: 0; padding: 0 40px; background: #12121f; border-bottom: 2px solid #2a2a4a; }
+        .tab-btn { padding: 14px 28px; background: transparent; border: none; color: #666; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn:hover { color: #aaa; background: #1a1a2e; }
+        .tab-btn.active { color: #00d4ff; border-bottom-color: #00d4ff; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 40px; }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; }
+        .card h2 { font-size: 16px; color: #00d4ff; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2a2a4a; }
+        .full-width { grid-column: 1 / -1; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a4a; font-size: 14px; }
+        th { color: #888; font-weight: normal; font-size: 12px; text-transform: uppercase; }
+        .badge-active { background: #1a4a2a; color: #53cf60; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .badge-inactive { background: #3a2a2a; color: #cf5353; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .profit-positive { color: #53cf60; font-weight: bold; }
+        .profit-negative { color: #cf5353; font-weight: bold; }
+        .btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px; }
+        .btn-activate { background: #1a4a2a; color: #53cf60; }
+        .btn-activate:hover { background: #2a5a3a; }
+        .btn-delete { background: #3a2a2a; color: #cf5353; }
+        .btn-delete:hover { background: #4a3a3a; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .stat-item { background: #12121f; border-radius: 8px; padding: 15px; text-align: center; }
+        .stat-item .value { font-size: 24px; font-weight: bold; color: #00d4ff; }
+        .stat-item .label { font-size: 12px; color: #888; margin-top: 5px; }
+        .loading { text-align: center; color: #666; padding: 20px; }
+        .error { text-align: center; color: #cf5353; padding: 20px; }
+        .form-container { display: none; background: #12121f; border-radius: 8px; padding: 20px; margin-top: 15px; }
+        .form-container.show { display: block; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 14px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #0f3460; color: #00d4ff; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-cancel { background: #2a2a4a; color: #888; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-add { background: #0f3460; color: #00d4ff; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; float: right; margin-top: -30px; }
+        .toggle-btn { padding: 8px 16px; background: #1a1a2e; border: 1px solid #333; color: #888; border-radius: 20px; cursor: pointer; transition: all 0.2s; user-select: none; display: inline-block; }
+        .toggle-btn.active { background: #00d4ff; color: #000; border-color: #00d4ff; font-weight: bold; }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .input-row label { color: #888; font-size: 0.85rem; display: block; margin-bottom: 4px; }
+        .input-row input { width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px; }
+        .run-btn { padding: 10px 30px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -289,179 +60,58 @@
     <h1>QuantMaster Dashboard</h1>
     <div class="status" id="serverStatus">서버 연결 확인 중...</div>
 </div>
+<div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('home', this)">🏠 대시보드</button>
+    <button class="tab-btn" onclick="switchTab('backtest', this)">🔬 백테스트</button>
+    <button class="tab-btn" onclick="switchTab('simulation', this)">💰 모의투자</button>
+    <button class="tab-btn" onclick="switchTab('ai', this)">🤖 AI 분석</button>
+</div>
 
-<!-- 통계 요약 -->
-<div class="dashboard">
+<!-- 대시보드 탭 -->
+<div class="tab-content active" id="tab-home">
     <div class="card full-width">
         <h2>시스템 요약</h2>
         <div class="stats-grid">
-            <div class="stat-item">
-                <div class="value" id="totalStrategies">-</div>
-                <div class="label">전략 설정 수</div>
-            </div>
-            <div class="stat-item">
-                <div class="value" id="activeStrategy">-</div>
-                <div class="label">활성 전략</div>
-            </div>
-            <div class="stat-item">
-                <div class="value" id="totalBacktests">-</div>
-                <div class="label">백테스트 결과</div>
-            </div>
-            <div class="stat-item">
-                <div class="value" id="bestProfit">-</div>
-                <div class="label">최고 수익률</div>
-            </div>
+            <div class="stat-item"><div class="value" id="totalStrategies">-</div><div class="label">전략 설정 수</div></div>
+            <div class="stat-item"><div class="value" id="activeStrategy">-</div><div class="label">활성 전략</div></div>
+            <div class="stat-item"><div class="value" id="totalBacktests">-</div><div class="label">백테스트 결과</div></div>
+            <div class="stat-item"><div class="value" id="bestProfit">-</div><div class="label">최고 수익률</div></div>
         </div>
     </div>
-
-    <!-- 전략 설정 -->
     <div class="card">
         <h2>전략 설정 관리</h2>
         <button class="btn-add" onclick="toggleForm()">+ 새 전략</button>
-
         <div class="form-container" id="addForm">
-            <div class="form-group">
-                <label>설정 이름</label>
-                <input type="text" id="formName"
-                       placeholder="예: 공격형 전략">
-            </div>
-            <div class="form-group">
-                <label>전략 조합 (콤마 구분)</label>
-                <input type="text" id="formStrategies"
-                       placeholder="예: EMA,RSI,BBB">
-            </div>
-            <div class="form-group">
-                <label>메인 모델</label>
-                <select id="formModel">
-                    <option value="LSTM">LSTM</option>
-                    <option value="Transformer">Transformer+GRU</option>
-                    <option value="LightGBM">LightGBM</option>
-                    <option value="None">없음</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Entry Threshold</label>
-                <input type="number" id="formThreshold"
-                       value="2" min="1" max="20">
-            </div>
-            <div class="form-actions">
-                <button class="btn-save" onclick="saveStrategy()">
-                    저장</button>
-                <button class="btn-cancel" onclick="toggleForm()">
-                    취소</button>
-            </div>
+            <div class="form-group"><label>설정 이름</label><input type="text" id="formName" placeholder="예: 공격형 전략"></div>
+            <div class="form-group"><label>전략 조합 (콤마 구분)</label><input type="text" id="formStrategies" placeholder="예: EMA,RSI,BBB"></div>
+            <div class="form-group"><label>메인 모델</label><select id="formModel"><option value="LSTM">LSTM</option><option value="Transformer">Transformer+GRU</option><option value="LightGBM">LightGBM</option><option value="None">없음</option></select></div>
+            <div class="form-group"><label>Entry Threshold</label><input type="number" id="formThreshold" value="2" min="1" max="20"></div>
+            <div class="form-actions"><button class="btn-save" onclick="saveStrategy()">저장</button><button class="btn-cancel" onclick="toggleForm()">취소</button></div>
         </div>
-
-        <div id="strategyTable">
-            <div class="loading">로딩 중...</div>
-        </div>
+        <div id="strategyTable"><div class="loading">로딩 중...</div></div>
     </div>
-
-    <!-- 백테스트 실행 -->
-    <div class="card" style="grid-column: 1 / -1;">
-        <h2>🔬 백테스트 실행</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">종목 코드</label>
-                <input id="btCode" value="AAPL" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">시작일</label>
-                <input id="btStart" type="date" value="2024-01-01" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">종료일</label>
-                <input id="btEnd" type="date" value="2024-12-31" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">Threshold</label>
-                <input id="btThreshold" type="number" value="1" min="1" max="10" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label style="color: #888; font-size: 0.85rem;">전략 선택</label>
-            <div id="strategyToggles" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
-                <span class="toggle-btn active" data-strategy="EMA" onclick="this.classList.toggle('active')">EMA</span>
-                <span class="toggle-btn active" data-strategy="RSI" onclick="this.classList.toggle('active')">RSI</span>
-                <span class="toggle-btn" data-strategy="BBB" onclick="this.classList.toggle('active')">BBB</span>
-                <span class="toggle-btn" data-strategy="TTM" onclick="this.classList.toggle('active')">TTM</span>
-                <span class="toggle-btn" data-strategy="MACD" onclick="this.classList.toggle('active')">MACD</span>
-                <span class="toggle-btn" data-strategy="EMA3" onclick="this.classList.toggle('active')">EMA3</span>
-                <span class="toggle-btn" data-strategy="SUT" onclick="this.classList.toggle('active')">SUT</span>
-                <span class="toggle-btn" data-strategy="PSAR" onclick="this.classList.toggle('active')">PSAR</span>
-                <span class="toggle-btn" data-strategy="LSTM" onclick="this.classList.toggle('active')">LSTM</span>
-            </div>
-        </div>
-
-        <button onclick="runBacktest()" id="btRunBtn" style="padding: 10px 30px; background: #00d4ff; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
-            🚀 백테스트 실행
-        </button>
-
-        <div id="btResult" style="margin-top: 15px; display: none;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
-                <div class="stat-card"><div id="btProfit" class="value">-</div><div class="label">수익률</div></div>
-                <div class="stat-card"><div id="btWinRate" class="value">-</div><div class="label">승률</div></div>
-                <div class="stat-card"><div id="btTrades" class="value">-</div><div class="label">거래 횟수</div></div>
-                <div class="stat-card"><div id="btMDD" class="value">-</div><div class="label">MDD</div></div>
-            </div>
-            <div style="margin-top: 15px;">
-                <canvas id="tradeChart" height="80"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- 백테스트 결과 -->
     <div class="card">
         <h2>백테스트 결과 (수익률 TOP)</h2>
-        <button class="btn btn-delete" onclick="clearAllBacktests()" style="float:right; margin-top:-30px;">🗑️ 전체 삭제</button>
-        <div id="backtestTable">
-            <div class="loading">로딩 중...</div>
-        </div>
+        <button class="btn btn-delete" onclick="clearAllBacktests()" style="float:right;margin-top:-30px;">🗑️ 전체 삭제</button>
+        <div id="backtestTable"><div class="loading">로딩 중...</div></div>
     </div>
+    <div class="card full-width"><h2>📈 종가 차트</h2><canvas id="stockChart" height="100"></canvas></div>
+    <div class="card full-width"><h2>📊 최근 주식 데이터</h2><div id="stockTable"><div class="loading">로딩 중...</div></div></div>
+</div>
 
-    <!-- 주식 차트 -->
+<!-- 백테스트 탭 -->
+<div class="tab-content" id="tab-backtest">
     <div class="card full-width">
-        <h2>AAPL 종가 차트</h2>
-        <canvas id="stockChart" height="100"></canvas>
-    </div>
-
-    <!-- 주식 데이터 테이블 -->
-    <div class="card full-width">
-        <h2>최근 주식 데이터 (AAPL)</h2>
-        <div id="stockTable">
-            <div class="loading">로딩 중...</div>
+        <h2>🔬 백테스트 실행</h2>
+        <div class="input-row">
+            <div><label>종목 코드</label><input id="btCode" value="AAPL"></div>
+            <div><label>시작일</label><input id="btStart" type="date" value="2024-01-01"></div>
+            <div><label>종료일</label><input id="btEnd" type="date" value="2024-12-31"></div>
+            <div><label>Threshold</label><input id="btThreshold" type="number" value="1" min="1" max="10"></div>
         </div>
-    </div>
-    <!-- 모의투자 시뮬레이터 -->
-    <div class="card" style="grid-column: 1 / -1;">
-        <h2>💰 모의투자 시뮬레이터</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">종목 코드</label>
-                <input id="simCode" value="AAPL" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">시작일</label>
-                <input id="simStart" type="date" value="2024-01-01" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">종료일</label>
-                <input id="simEnd" type="date" value="2024-12-31" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">초기 자금 ($)</label>
-                <input id="simCash" type="number" value="10000" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-            <div>
-                <label style="color: #888; font-size: 0.85rem;">Threshold</label>
-                <input id="simThreshold" type="number" value="1" min="1" max="10" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px;">
-            </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label style="color: #888; font-size: 0.85rem;">전략 선택</label>
-            <div id="simToggles" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+        <div style="margin-bottom:15px;">
+            <label style="color:#888;font-size:0.85rem;">전략 선택</label>
+            <div id="strategyToggles" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
                 <span class="toggle-btn active" data-strategy="EMA" onclick="this.classList.toggle('active')">EMA</span>
                 <span class="toggle-btn active" data-strategy="RSI" onclick="this.classList.toggle('active')">RSI</span>
                 <span class="toggle-btn" data-strategy="BBB" onclick="this.classList.toggle('active')">BBB</span>
@@ -473,1074 +123,175 @@
                 <span class="toggle-btn" data-strategy="LSTM" onclick="this.classList.toggle('active')">LSTM</span>
             </div>
         </div>
+        <button onclick="runBacktest()" id="btRunBtn" class="run-btn" style="background:#00d4ff;color:#000;">🚀 백테스트 실행</button>
+        <div id="btResult" style="margin-top:15px;display:none;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                <div class="stat-item"><div id="btProfit" class="value">-</div><div class="label">수익률</div></div>
+                <div class="stat-item"><div id="btWinRate" class="value">-</div><div class="label">승률</div></div>
+                <div class="stat-item"><div id="btTrades" class="value">-</div><div class="label">거래 횟수</div></div>
+                <div class="stat-item"><div id="btMDD" class="value">-</div><div class="label">MDD</div></div>
+            </div>
+            <div style="margin-top:15px;"><canvas id="tradeChart" height="80"></canvas></div>
+        </div>
+    </div>
+</div>
 
-        <button onclick="runSimulation()" id="simRunBtn" style="padding: 10px 30px; background: #53cf60; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
-            💰 모의투자 시작
-        </button>
-
-        <div id="simResult" style="margin-top: 15px; display: none;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                <div class="stat-card"><div id="simInitial" class="value">-</div><div class="label">초기 자금</div></div>
-                <div class="stat-card"><div id="simFinal" class="value">-</div><div class="label">최종 자산</div></div>
-                <div class="stat-card"><div id="simReturn" class="value">-</div><div class="label">수익률</div></div>
-                <div class="stat-card"><div id="simTradeCount" class="value">-</div><div class="label">거래 횟수</div></div>
+<!-- 모의투자 탭 -->
+<div class="tab-content" id="tab-simulation">
+    <div class="card full-width">
+        <h2>💰 모의투자 시뮬레이터</h2>
+        <div class="input-row">
+            <div><label>종목 코드</label><input id="simCode" value="AAPL"></div>
+            <div><label>시작일</label><input id="simStart" type="date" value="2024-01-01"></div>
+            <div><label>종료일</label><input id="simEnd" type="date" value="2024-12-31"></div>
+            <div><label>초기 자금 ($)</label><input id="simCash" type="number" value="10000"></div>
+            <div><label>Threshold</label><input id="simThreshold" type="number" value="1" min="1" max="10"></div>
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="color:#888;font-size:0.85rem;">전략 선택</label>
+            <div id="simToggles" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                <span class="toggle-btn active" data-strategy="EMA" onclick="this.classList.toggle('active')">EMA</span>
+                <span class="toggle-btn active" data-strategy="RSI" onclick="this.classList.toggle('active')">RSI</span>
+                <span class="toggle-btn" data-strategy="BBB" onclick="this.classList.toggle('active')">BBB</span>
+                <span class="toggle-btn" data-strategy="TTM" onclick="this.classList.toggle('active')">TTM</span>
+                <span class="toggle-btn" data-strategy="MACD" onclick="this.classList.toggle('active')">MACD</span>
+                <span class="toggle-btn" data-strategy="EMA3" onclick="this.classList.toggle('active')">EMA3</span>
+                <span class="toggle-btn" data-strategy="SUT" onclick="this.classList.toggle('active')">SUT</span>
+                <span class="toggle-btn" data-strategy="PSAR" onclick="this.classList.toggle('active')">PSAR</span>
+                <span class="toggle-btn" data-strategy="LSTM" onclick="this.classList.toggle('active')">LSTM</span>
+            </div>
+        </div>
+        <button onclick="runSimulation()" id="simRunBtn" class="run-btn" style="background:#53cf60;color:#000;">💰 모의투자 시작</button>
+        <div id="simResult" style="margin-top:15px;display:none;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px;">
+                <div class="stat-item"><div id="simInitial" class="value">-</div><div class="label">초기 자금</div></div>
+                <div class="stat-item"><div id="simFinal" class="value">-</div><div class="label">최종 자산</div></div>
+                <div class="stat-item"><div id="simReturn" class="value">-</div><div class="label">수익률</div></div>
+                <div class="stat-item"><div id="simTradeCount" class="value">-</div><div class="label">거래 횟수</div></div>
             </div>
             <canvas id="portfolioChart" height="80"></canvas>
         </div>
     </div>
+</div>
+
+<!-- AI 분석 탭 -->
+<div class="tab-content" id="tab-ai">
     <div class="card">
         <h2>🤖 AI 주가 예측 (LSTM)</h2>
-        <div class="form-row">
-            <div>
-                <label>종목 코드</label>
-                <input type="text" id="predCode" value="KS11" placeholder="KS11">
-            </div>
-            <div>
-                <label>예측 기간 (일)</label>
-                <input type="number" id="predDays" value="100">
-            </div>
-        </div>
-        <button class="btn btn-activate" id="predRunBtn" onclick="runPrediction()">
-            🤖 AI 예측 실행
-        </button>
-        <div id="predResult" style="display:none; margin-top: 15px;">
-            <div class="summary-grid">
-                <div>
-                    <span class="value" id="predMAPE">0%</span>
-                    <span class="label">오차율 (MAPE)</span>
-                </div>
-                <div>
-                    <span class="value" id="predDirection">0%</span>
-                    <span class="label">방향 정확도</span>
-                </div>
-                <div>
-                    <span class="value" id="predActual">0</span>
-                    <span class="label">실제 종가</span>
-                </div>
-                <div>
-                    <span class="value" id="predPredicted">0</span>
-                    <span class="label">예측 종가</span>
-                </div>
+        <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.85rem;">종목 코드</label><input type="text" id="predCode" value="KS11" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
+        <div style="margin-bottom:15px;"><label style="color:#888;font-size:0.85rem;">예측 기간 (일)</label><input type="number" id="predDays" value="100" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
+        <button class="run-btn" style="background:#ff6b6b;color:#000;" id="predRunBtn" onclick="runPrediction()">🤖 AI 예측 실행</button>
+        <div id="predResult" style="display:none;margin-top:15px;">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;">
+                <div class="stat-item"><div class="value" id="predMAPE">0%</div><div class="label">오차율 (MAPE)</div></div>
+                <div class="stat-item"><div class="value" id="predDirection">0%</div><div class="label">방향 정확도</div></div>
+                <div class="stat-item"><div class="value" id="predActual">0</div><div class="label">실제 종가</div></div>
+                <div class="stat-item"><div class="value" id="predPredicted">0</div><div class="label">예측 종가</div></div>
             </div>
             <canvas id="predictionChart"></canvas>
         </div>
     </div>
     <div class="card">
         <h2>🤖 AI Agent 주식 분석</h2>
-        <div class="form-row">
-            <div style="flex:3">
-                <label>분석 요청</label>
-                <input type="text" id="agentQuery" value="일주일간 저평가된 변동성 큰 주식 추천해줘" placeholder="분석 요청을 입력하세요">
-            </div>
-            <div style="flex:1">
-                <label>분석 기간 (일)</label>
-                <input type="number" id="agentDays" value="7">
-            </div>
-        </div>
-        <button class="btn btn-activate" id="agentRunBtn" onclick="runAgentAnalysis()">
-            🤖 AI 분석 실행
-        </button>
-        <div id="agentResult" style="display:none; margin-top: 15px;">
-            <div class="summary-grid">
-                <div>
-                    <span class="value" id="agentDate">-</span>
-                    <span class="label">분석일</span>
-                </div>
-                <div>
-                    <span class="value" id="agentScanned">0</span>
-                    <span class="label">스캔 종목 수</span>
-                </div>
-                <div>
-                    <span class="value" id="agentTop">-</span>
-                    <span class="label">1위 종목</span>
-                </div>
-                <div>
-                    <span class="value" id="agentTopScore">0</span>
-                    <span class="label">최고 점수</span>
-                </div>
+        <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.85rem;">분석 요청</label><input type="text" id="agentQuery" value="일주일간 저평가된 변동성 큰 주식 추천해줘" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
+        <div style="margin-bottom:15px;"><label style="color:#888;font-size:0.85rem;">분석 기간 (일)</label><input type="number" id="agentDays" value="7" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
+        <button class="run-btn" style="background:#a55eea;color:#fff;" id="agentRunBtn" onclick="runAgentAnalysis()">🤖 AI 분석 실행</button>
+        <div id="agentResult" style="display:none;margin-top:15px;">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;">
+                <div class="stat-item"><div class="value" id="agentDate">-</div><div class="label">분석일</div></div>
+                <div class="stat-item"><div class="value" id="agentScanned">0</div><div class="label">스캔 종목 수</div></div>
+                <div class="stat-item"><div class="value" id="agentTop">-</div><div class="label">1위 종목</div></div>
+                <div class="stat-item"><div class="value" id="agentTopScore">0</div><div class="label">최고 점수</div></div>
             </div>
             <canvas id="agentScoreChart"></canvas>
             <canvas id="agentRadarChart" style="margin-top:20px;"></canvas>
             <div id="agentTable" style="margin-top:20px;"></div>
         </div>
     </div>
+</div>
 
+<script>
+    const API = "/api";
 
-
-    <script>
-        const API = "/api";
-
-        // ====== 페이지 로드 시 전체 데이터 가져오기 ======
-        window.onload = function () {
-            loadStrategies();
-            loadBacktests();
-            loadStockData();
-            document.getElementById("serverStatus").textContent =
-                "서버 연결됨 ✓";
-            document.getElementById("serverStatus").style.color = "#53cf60";
-        };
-
-        // ====== 전략 설정 로드 ======
-        async function loadStrategies() {
-            try {
-                const res = await fetch(`${API}/strategy`);
-                const result = await res.json();
-                const data = result.data;
-
-                document.getElementById("totalStrategies").textContent =
-                    data.length;
-
-                // 활성 전략 찾기
-                const active = data.find((d) => d.isActive === true);
-                document.getElementById("activeStrategy").textContent =
-                    active ? active.name : "없음";
-
-                if (data.length === 0) {
-                    document.getElementById("strategyTable").innerHTML =
-                        '<div class="loading">등록된 전략이 없습니다.</div>';
-                    return;
-                }
-
-                let html = `<table>
-                    <tr>
-                        <th>이름</th>
-                        <th>전략 조합</th>
-                        <th>Threshold</th>
-                        <th>상태</th>
-                        <th>관리</th>
-                    </tr>`;
-
-                for (const s of data) {
-                    const badge = s.isActive
-                        ? '<span class="badge-active">활성</span>'
-                        : '<span class="badge-inactive">비활성</span>';
-
-                    const buttons = s.isActive
-                        ? ""
-                        : `<button class="btn btn-activate"
-                             onclick="activateStrategy(${s.id})">
-                             활성화</button>
-                           <button class="btn btn-delete"
-                             onclick="deleteStrategy(${s.id})">
-                             삭제</button>`;
-
-                    html += `<tr>
-                        <td>${s.name}</td>
-                        <td>${s.activeStrategies}</td>
-                        <td>${s.entryThreshold}</td>
-                        <td>${badge}</td>
-                        <td>${buttons}</td>
-                    </tr>`;
-                }
-
-                html += "</table>";
-                document.getElementById("strategyTable").innerHTML = html;
-            } catch (e) {
-                document.getElementById("strategyTable").innerHTML =
-                    '<div class="error">전략 데이터 로드 실패</div>';
-            }
-        }
-
-        // ====== 백테스트 결과 로드 ======
-        async function loadBacktests() {
-            try {
-                const res = await fetch(`${API}/backtest/AAPL/top`);
-                const result = await res.json();
-                const data = result.data;
-
-                document.getElementById("totalBacktests").textContent =
-                    data.length;
-
-                if (data.length > 0) {
-                    const best = data[0].totalProfitPct;
-                    document.getElementById("bestProfit").textContent =
-                        best.toFixed(1) + "%";
-                    document.getElementById("bestProfit").className =
-                        best >= 0 ? "value profit-positive"
-                                  : "value profit-negative";
-                }
-
-                if (data.length === 0) {
-                    document.getElementById("backtestTable").innerHTML =
-                        '<div class="loading">백테스트 결과가 없습니다.</div>';
-                    return;
-                }
-
-                let html = `<table>
-                    <tr>
-                        <th>전략 조합</th>
-                        <th>수익률</th>
-                        <th>승률</th>
-                        <th>MDD</th>
-                        <th>관리</th>
-                    </tr>`;
-
-                for (const b of data) {
-                    const profit = b.totalProfitPct || 0;
-                    const winR = b.winRate || 0;
-                    const mdd = b.maxDrawdownPct || 0;
-                    const profitClass = profit >= 0
-                        ? "profit-positive" : "profit-negative";
-
-                    html += `<tr>
-                        <td>${b.strategies}</td>
-                        <td class="${profitClass}">
-                            ${profit.toFixed(1)}%</td>
-                        <td>${winR.toFixed(1)}%</td>
-                        <td class="profit-negative">
-                            ${mdd.toFixed(1)}%</td>
-                        <td><button class="btn btn-delete" onclick="deleteBacktest(${b.id})">삭제</button></td>
-                    </tr>`;
-                    }
-
-
-                html += "</table>";
-                document.getElementById("backtestTable").innerHTML = html;
-            } catch (e) {
-                document.getElementById("backtestTable").innerHTML =
-                    '<div class="error">백테스트 데이터 로드 실패</div>';
-            }
-        }
-
-        // ====== 주식 데이터 로드 ======
-        // ====== 주식 데이터 로드 ======
-            async function loadStockData() {
-                try {
-                    const res = await fetch(`${API}/stock/AAPL?timeframe=1d`);
-                    const result = await res.json();
-                    const data = result.data;
-
-                    // ====== 차트 그리기 ======
-                    const labels = data.map(s => s.tradeTime.substring(5, 10));
-                    const closes = data.map(s => s.close);
-                    const volumes = data.map(s => s.volume);
-
-                    new Chart(document.getElementById("stockChart"), {
-                        type: "line",
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: "종가 ($)",
-                                    data: closes,
-                                    borderColor: "#00d4ff",
-                                    backgroundColor: "rgba(0,212,255,0.1)",
-                                    fill: true,
-                                    tension: 0.3,
-                                    pointRadius: 0,
-                                    yAxisID: "y"
-                                },
-                                {
-                                    label: "거래량",
-                                    data: volumes,
-                                    type: "bar",
-                                    backgroundColor: "rgba(83,207,96,0.3)",
-                                    yAxisID: "y1"
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            interaction: {
-                                mode: "index",
-                                intersect: false
-                            },
-                            plugins: {
-                                legend: {
-                                    labels: { color: "#888" }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    ticks: { color: "#666", maxTicksLimit: 15 },
-                                    grid: { color: "#1a1a2e" }
-                                },
-                                y: {
-                                    position: "left",
-                                    ticks: { color: "#00d4ff" },
-                                    grid: { color: "#1a1a2e" }
-                                },
-                                y1: {
-                                    position: "right",
-                                    ticks: { color: "#53cf60" },
-                                    grid: { display: false }
-                                }
-                            }
-                        }
-                    });
-
-                    // ====== 테이블도 유지 ======
-                    const recent = data.slice(-10);
-
-                    if (recent.length === 0) {
-                        document.getElementById("stockTable").innerHTML =
-                            '<div class="loading">주식 데이터가 없습니다.</div>';
-                        return;
-                    }
-
-                    let html = `<table>
-                        <tr>
-                            <th>날짜</th>
-                            <th>시가</th>
-                            <th>고가</th>
-                            <th>저가</th>
-                            <th>종가</th>
-                            <th>거래량</th>
-                        </tr>`;
-
-                    for (const s of recent) {
-                        const date = s.tradeTime.substring(0, 10);
-                        html += `<tr>
-                            <td>${date}</td>
-                            <td>$${s.open.toFixed(2)}</td>
-                            <td>$${s.high.toFixed(2)}</td>
-                            <td>$${s.low.toFixed(2)}</td>
-                            <td>$${s.close.toFixed(2)}</td>
-                            <td>${s.volume.toLocaleString()}</td>
-                        </tr>`;
-                    }
-
-                    html += "</table>";
-                    document.getElementById("stockTable").innerHTML = html;
-                } catch (e) {
-                    document.getElementById("stockTable").innerHTML =
-                        '<div class="error">주식 데이터 로드 실패</div>';
-                }
-            }
-
-        // ====== 전략 활성화 → 백테스트/모의투자 토글에 자동 반영 ======
-        async function activateStrategy(id) {
-            const res = await fetch(`${API}/strategy/${id}/activate`, {
-                method: "PUT"
-            });
-
-            // 활성화된 전략 정보 가져오기
-            const stratRes = await fetch(`${API}/strategy`);
-            const stratResult = await stratRes.json();
-            const active = stratResult.data.find(s => s.id === id);
-
-            if (active) {
-                const strategyList = active.activeStrategies.split(',').map(s => s.trim());
-                const threshold = active.entryThreshold;
-
-                // 백테스트 토글 버튼 업데이트
-                document.querySelectorAll('#strategyToggles .toggle-btn').forEach(btn => {
-                    if (strategyList.includes(btn.dataset.strategy)) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                document.getElementById('btThreshold').value = threshold;
-
-                // 모의투자 토글 버튼도 업데이트
-                document.querySelectorAll('#simToggles .toggle-btn').forEach(btn => {
-                    if (strategyList.includes(btn.dataset.strategy)) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                document.getElementById('simThreshold').value = threshold;
-
-                alert(`"${active.name}" 전략이 적용되었습니다!\n전략: ${active.activeStrategies}\nThreshold: ${threshold}`);
-            }
-
-            loadStrategies();
-        }
-
-        // ====== 전략 삭제 ======
-        async function deleteStrategy(id) {
-            if (confirm("정말 삭제하시겠습니까?")) {
-                await fetch(`${API}/strategy/${id}`, {
-                    method: "DELETE"
-                });
-                loadStrategies();
-            }
-        }
-
-        // ====== 백테스트 결과 삭제 ======
-        async function deleteBacktest(id) {
-            if (confirm("이 백테스트 결과를 삭제하시겠습니까?")) {
-                await fetch(`${API}/backtest/${id}`, {
-                    method: "DELETE"
-                });
-                loadBacktests();
-            }
-        }
-
-        // ====== 백테스트 결과 전체 삭제 ======
-        async function clearAllBacktests() {
-            if (confirm("모든 백테스트 결과를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다!")) {
-                await fetch(`${API}/backtest/clear`, {
-                    method: "DELETE"
-                });
-                loadBacktests();
-            }
-        }
-
-        // ====== 폼 토글 ======
-            function toggleForm() {
-                const form = document.getElementById("addForm");
-                form.classList.toggle("show");
-            }
-
-            // ====== 전략 저장 ======
-            async function saveStrategy() {
-                const name = document.getElementById("formName").value;
-                const strategies =
-                    document.getElementById("formStrategies").value;
-                const model = document.getElementById("formModel").value;
-                const threshold =
-                    document.getElementById("formThreshold").value;
-
-                if (!name || !strategies) {
-                    alert("이름과 전략 조합을 입력해주세요!");
-                    return;
-                }
-
-                const data = {
-                    name: name,
-                    activeStrategies: strategies,
-                    mainModel: model,
-                    entryThreshold: parseInt(threshold),
-                    parameters: "{}"
-                };
-
-                await fetch(`${API}/strategy`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-
-                // 폼 초기화 & 닫기
-                document.getElementById("formName").value = "";
-                document.getElementById("formStrategies").value = "";
-                toggleForm();
-
-                // 화면 갱신
-                loadStrategies();
-            }
-
-    let tradeChartInstance = null;
-
-    function drawTradeChart(data) {
-        // 이전 차트 제거
-        if (tradeChartInstance) {
-            tradeChartInstance.destroy();
-        }
-
-        const trades = data.trades || [];
-        if (trades.length === 0) return;
-
-        // 날짜순 정렬
-        const labels = trades.map(t => t.date);
-        const prices = trades.map(t => t.price);
-
-        // 매수/매도 분리
-        const buyPoints = trades.map(t =>
-            t.type === 'BUY' ? t.price : null);
-        const sellPoints = trades.map(t =>
-            t.type === 'SELL' ? t.price : null);
-
-        const ctx = document.getElementById('tradeChart');
-        tradeChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: '주가',
-                        data: prices,
-                        borderColor: '#00d4ff',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: '매수 (BUY)',
-                        data: buyPoints,
-                        borderColor: 'transparent',
-                        backgroundColor: '#53cf60',
-                        pointRadius: 8,
-                        pointStyle: 'triangle',
-                        showLine: false
-                    },
-                    {
-                        label: '매도 (SELL)',
-                        data: sellPoints,
-                        borderColor: 'transparent',
-                        backgroundColor: '#cf5353',
-                        pointRadius: 8,
-                        pointStyle: 'triangle',
-                        pointRotation: 180,
-                        showLine: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: { color: '#888' }
-                    },
-                    title: {
-                        display: true,
-                        text: '매매 포인트 차트',
-                        color: '#00d4ff',
-                        font: { size: 14 }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#1a1a2e' }
-                    },
-                    y: {
-                        ticks: { color: '#00d4ff' },
-                        grid: { color: '#1a1a2e' }
-                    }
-                }
-            }
-        });
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        btn.classList.add('active');
     }
 
-    // 백테스트 실행
-    async function runBacktest() {
-        const btn = document.getElementById("btRunBtn");
-        btn.disabled = true;
-        btn.textContent = "⏳ 실행 중...";
+    window.onload = function() {
+        loadStrategies(); loadBacktests(); loadStockData();
+        document.getElementById("serverStatus").textContent = "서버 연결됨 ✓";
+        document.getElementById("serverStatus").style.color = "#53cf60";
+    };
 
-        // 선택된 전략 수집 (백테스트 영역만!)
-        const strategies = [];
-        document.querySelectorAll('#strategyToggles .toggle-btn.active').forEach(btn => {
-            strategies.push(btn.dataset.strategy);
-        });
-
-        if (strategies.length === 0) {
-            alert("전략을 하나 이상 선택하세요!");
-            btn.disabled = false;
-            btn.textContent = "🚀 백테스트 실행";
-            return;
-        }
-
-        const params = {
-            code: document.getElementById("btCode").value,
-            startDate: document.getElementById("btStart").value,
-            endDate: document.getElementById("btEnd").value,
-            strategies: strategies,
-            threshold: parseInt(
-                document.getElementById("btThreshold").value)
-        };
-
+    async function loadStrategies() {
         try {
-            const res = await fetch(`${API}/backtest/run`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(params)
-            });
-            const result = await res.json();
-
-            // Python 결과는 문자열로 오니까 다시 파싱
-            let data;
-            if (typeof result.data === 'string') {
-                data = JSON.parse(result.data);
-            } else {
-                data = result.data;
+            const res = await fetch(`${API}/strategy`); const result = await res.json(); const data = result.data;
+            document.getElementById("totalStrategies").textContent = data.length;
+            const active = data.find(d => d.isActive === true);
+            document.getElementById("activeStrategy").textContent = active ? active.name : "없음";
+            if (data.length === 0) { document.getElementById("strategyTable").innerHTML = '<div class="loading">등록된 전략이 없습니다.</div>'; return; }
+            let html = '<table><tr><th>이름</th><th>전략</th><th>Threshold</th><th>상태</th><th>관리</th></tr>';
+            for (const s of data) {
+                const badge = s.isActive ? '<span class="badge-active">활성</span>' : '<span class="badge-inactive">비활성</span>';
+                const buttons = s.isActive ? "" : `<button class="btn btn-activate" onclick="activateStrategy(${s.id})">활성화</button> <button class="btn btn-delete" onclick="deleteStrategy(${s.id})">삭제</button>`;
+                html += `<tr><td>${s.name}</td><td>${s.activeStrategies}</td><td>${s.entryThreshold}</td><td>${badge}</td><td>${buttons}</td></tr>`;
             }
-
-            // 결과 표시
-            const resultDiv = document.getElementById("btResult");
-            resultDiv.style.display = "block";
-
-            const profit = data.totalProfitPct || 0;
-            const profitEl = document.getElementById("btProfit");
-            profitEl.textContent = profit.toFixed(1) + "%";
-            profitEl.className = profit >= 0
-                ? "value profit-positive"
-                : "value profit-negative";
-
-            document.getElementById("btWinRate").textContent =
-                (data.winRate || 0).toFixed(1) + "%";
-            document.getElementById("btTrades").textContent =
-                data.totalTrades || 0;
-
-            const mdd = data.maxDrawdownPct || 0;
-            const mddEl = document.getElementById("btMDD");
-            mddEl.textContent = mdd.toFixed(1) + "%";
-            mddEl.className = "value profit-negative";
-
-            drawTradeChart(data);
-            // 백테스트 결과 테이블 새로고침
-            loadBacktests();
-
-        } catch (e) {
-            alert("백테스트 실행 실패: " + e.message);
-        }
-
-        btn.disabled = false;
-        btn.textContent = "🚀 백테스트 실행";
+            document.getElementById("strategyTable").innerHTML = html + "</table>";
+        } catch(e) { document.getElementById("strategyTable").innerHTML = '<div class="error">전략 데이터 로드 실패</div>'; }
     }
 
-        let portfolioChartInstance = null;
-
-    async function runSimulation() {
-        const btn = document.getElementById("simRunBtn");
-        btn.disabled = true;
-        btn.textContent = "⏳ 실행 중...";
-
-        const strategies = [];
-        document.querySelectorAll('#simToggles .toggle-btn.active')
-            .forEach(b => strategies.push(b.dataset.strategy));
-
-        if (strategies.length === 0) {
-            alert("전략을 하나 이상 선택하세요!");
-            btn.disabled = false;
-            btn.textContent = "💰 모의투자 시작";
-            return;
-        }
-
-        const params = {
-            code: document.getElementById("simCode").value,
-            startDate: document.getElementById("simStart").value,
-            endDate: document.getElementById("simEnd").value,
-            strategies: strategies,
-            threshold: parseInt(
-                document.getElementById("simThreshold").value),
-            initialCash: parseInt(
-                document.getElementById("simCash").value)
-        };
-
+    async function loadBacktests() {
         try {
-            const res = await fetch(`${API}/backtest/simulation`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(params)
-            });
-            const result = await res.json();
-
-            let data;
-            if (typeof result.data === 'string') {
-                data = JSON.parse(result.data);
-            } else {
-                data = result.data;
-            }
-
-            // 결과 표시
-            const resultDiv = document.getElementById("simResult");
-            resultDiv.style.display = "block";
-
-            document.getElementById("simInitial").textContent =
-                "$" + (data.initialCash || 0).toLocaleString();
-            document.getElementById("simFinal").textContent =
-                "$" + (data.finalValue || 0).toLocaleString();
-
-            const ret = data.totalReturn || 0;
-            const retEl = document.getElementById("simReturn");
-            retEl.textContent = ret.toFixed(1) + "%";
-            retEl.className = ret >= 0
-                ? "value profit-positive"
-                : "value profit-negative";
-
-            const tradeCount = (data.trades || []).length;
-            document.getElementById("simTradeCount").textContent =
-                Math.floor(tradeCount / 2);
-
-            // 자산 변화 차트
-            drawPortfolioChart(data);
-
-        } catch (e) {
-            alert("모의투자 실행 실패: " + e.message);
-        }
-
-        btn.disabled = false;
-        btn.textContent = "💰 모의투자 시작";
+            const res = await fetch(`${API}/backtest/AAPL/top`); const result = await res.json(); const data = result.data;
+            document.getElementById("totalBacktests").textContent = data.length;
+            if (data.length > 0) { const best = data[0].totalProfitPct; document.getElementById("bestProfit").textContent = best.toFixed(1) + "%"; document.getElementById("bestProfit").className = best >= 0 ? "value profit-positive" : "value profit-negative"; }
+            if (data.length === 0) { document.getElementById("backtestTable").innerHTML = '<div class="loading">백테스트 결과가 없습니다.</div>'; return; }
+            let html = '<table><tr><th>전략</th><th>수익률</th><th>승률</th><th>MDD</th><th>관리</th></tr>';
+            for (const b of data) { const p = b.totalProfitPct||0; html += `<tr><td>${b.strategies}</td><td class="${p>=0?'profit-positive':'profit-negative'}">${p.toFixed(1)}%</td><td>${(b.winRate||0).toFixed(1)}%</td><td class="profit-negative">${(b.maxDrawdownPct||0).toFixed(1)}%</td><td><button class="btn btn-delete" onclick="deleteBacktest(${b.id})">삭제</button></td></tr>`; }
+            document.getElementById("backtestTable").innerHTML = html + "</table>";
+        } catch(e) { document.getElementById("backtestTable").innerHTML = '<div class="error">백테스트 데이터 로드 실패</div>'; }
     }
 
-    function drawPortfolioChart(data) {
-        if (portfolioChartInstance) {
-            portfolioChartInstance.destroy();
-        }
-
-        const portfolio = data.portfolio || [];
-        if (portfolio.length === 0) return;
-
-        // 날짜 라벨 간소화 (매 10번째만 표시)
-        const labels = portfolio.map((p, i) =>
-            i % 10 === 0 ? p.date.substring(5) : '');
-        const values = portfolio.map(p => p.value);
-        const prices = portfolio.map(p => p.price);
-
-        // 초기 자금 기준선
-        const baseline = new Array(portfolio.length)
-            .fill(data.initialCash);
-
-        const ctx = document.getElementById('portfolioChart');
-        portfolioChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: '내 자산 ($)',
-                        data: values,
-                        borderColor: '#53cf60',
-                        backgroundColor: 'rgba(83,207,96,0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        borderWidth: 2
-                    },
-                    {
-                        label: '초기 자금',
-                        data: baseline,
-                        borderColor: '#666',
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        borderWidth: 1,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: { color: '#888' }
-                    },
-                    title: {
-                        display: true,
-                        text: '자산 변화 추이',
-                        color: '#53cf60',
-                        font: { size: 14 }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#666', maxTicksLimit: 12 },
-                        grid: { color: '#1a1a2e' }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#53cf60',
-                            callback: function(v) {
-                                return '$' + v.toLocaleString();
-                            }
-                        },
-                        grid: { color: '#1a1a2e' }
-                    }
-                }
-            }
-        });
-    }
-
-        let predictionChartInstance = null;
-
-    async function runPrediction() {
-        const btn = document.getElementById("predRunBtn");
-        btn.disabled = true;
-        btn.textContent = "⏳ 예측 중...";
-
-        const params = {
-            code: document.getElementById("predCode").value || "KS11",
-            days: parseInt(document.getElementById("predDays").value) || 100
-        };
-
+    async function loadStockData() {
         try {
-            const res = await fetch(`${API}/backtest/predict`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(params)
-            });
-            const result = await res.json();
-
-            let data;
-            if (typeof result.data === 'string') {
-                data = JSON.parse(result.data);
-            } else {
-                data = result.data;
-            }
-
-            // 결과 표시
-            const resultDiv = document.getElementById("predResult");
-            resultDiv.style.display = "block";
-
-            document.getElementById("predMAPE").textContent =
-                (data.mape || 0) + "%";
-            document.getElementById("predDirection").textContent =
-                (data.directionAccuracy || 0) + "%";
-            document.getElementById("predActual").textContent =
-                (data.latestActual || 0).toLocaleString();
-            document.getElementById("predPredicted").textContent =
-                (data.latestPredicted || 0).toLocaleString();
-
-            // 차트 그리기
-            drawPredictionChart(data);
-
-        } catch (e) {
-            alert("LSTM 예측 실패: " + e.message);
-        }
-
-        btn.disabled = false;
-        btn.textContent = "🤖 AI 예측 실행";
+            const res = await fetch(`${API}/stock/AAPL?timeframe=1d`); const result = await res.json(); const data = result.data;
+            new Chart(document.getElementById("stockChart"), { type:"line", data:{ labels:data.map(s=>s.tradeTime.substring(5,10)), datasets:[{label:"종가($)",data:data.map(s=>s.close),borderColor:"#00d4ff",backgroundColor:"rgba(0,212,255,0.1)",fill:true,tension:0.3,pointRadius:0,yAxisID:"y"},{label:"거래량",data:data.map(s=>s.volume),type:"bar",backgroundColor:"rgba(83,207,96,0.3)",yAxisID:"y1"}]}, options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:"#888"}}},scales:{x:{ticks:{color:"#666",maxTicksLimit:15},grid:{color:"#1a1a2e"}},y:{position:"left",ticks:{color:"#00d4ff"},grid:{color:"#1a1a2e"}},y1:{position:"right",ticks:{color:"#53cf60"},grid:{display:false}}}}});
+            const recent = data.slice(-10);
+            let html = '<table><tr><th>날짜</th><th>시가</th><th>고가</th><th>저가</th><th>종가</th><th>거래량</th></tr>';
+            for (const s of recent) { html += `<tr><td>${s.tradeTime.substring(0,10)}</td><td>$${s.open.toFixed(2)}</td><td>$${s.high.toFixed(2)}</td><td>$${s.low.toFixed(2)}</td><td>$${s.close.toFixed(2)}</td><td>${s.volume.toLocaleString()}</td></tr>`; }
+            document.getElementById("stockTable").innerHTML = html + "</table>";
+        } catch(e) { document.getElementById("stockTable").innerHTML = '<div class="error">주식 데이터 로드 실패</div>'; }
     }
 
-    function drawPredictionChart(data) {
-        if (predictionChartInstance) {
-            predictionChartInstance.destroy();
-        }
-
-        const labels = data.dates.map((d, i) =>
-            i % 5 === 0 ? d.substring(5) : '');
-
-        const ctx = document.getElementById('predictionChart');
-        predictionChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: '실제 주가',
-                        data: data.actuals,
-                        borderColor: '#00d4ff',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'LSTM 예측',
-                        data: data.predictions,
-                        borderColor: '#ff6b6b',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        tension: 0.3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { labels: { color: '#888' } },
-                    title: {
-                        display: true,
-                        text: 'LSTM AI 주가 예측',
-                        color: '#00d4ff',
-                        font: { size: 14 }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#666', maxTicksLimit: 15 },
-                        grid: { color: '#1a1a2e' }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#00d4ff',
-                            callback: function(v) {
-                                return v.toLocaleString();
-                            }
-                        },
-                        grid: { color: '#1a1a2e' }
-                    }
-                }
-            }
-        });
+    async function activateStrategy(id) {
+        await fetch(`${API}/strategy/${id}/activate`,{method:"PUT"});
+        const r = await fetch(`${API}/strategy`); const d = (await r.json()).data; const a = d.find(s=>s.id===id);
+        if(a){ const sl=a.activeStrategies.split(',').map(s=>s.trim()); document.querySelectorAll('#strategyToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))}); document.getElementById('btThreshold').value=a.entryThreshold; document.querySelectorAll('#simToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))}); document.getElementById('simThreshold').value=a.entryThreshold; alert(`"${a.name}" 적용!\n전략: ${a.activeStrategies}\nThreshold: ${a.entryThreshold}`); }
+        loadStrategies();
     }
-        let agentScoreChartInstance = null;
-    let agentRadarChartInstance = null;
+    async function deleteStrategy(id){if(confirm("삭제하시겠습니까?")){await fetch(`${API}/strategy/${id}`,{method:"DELETE"});loadStrategies();}}
+    async function deleteBacktest(id){if(confirm("삭제하시겠습니까?")){await fetch(`${API}/backtest/${id}`,{method:"DELETE"});loadBacktests();}}
+    async function clearAllBacktests(){if(confirm("모든 결과를 삭제하시겠습니까?")){await fetch(`${API}/backtest/clear`,{method:"DELETE"});loadBacktests();}}
+    function toggleForm(){document.getElementById("addForm").classList.toggle("show");}
+    async function saveStrategy(){const n=document.getElementById("formName").value,s=document.getElementById("formStrategies").value;if(!n||!s){alert("이름과 전략을 입력하세요!");return;}await fetch(`${API}/strategy`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,activeStrategies:s,mainModel:document.getElementById("formModel").value,entryThreshold:parseInt(document.getElementById("formThreshold").value),parameters:"{}"})});document.getElementById("formName").value="";document.getElementById("formStrategies").value="";toggleForm();loadStrategies();}
 
-    async function runAgentAnalysis() {
-        const btn = document.getElementById("agentRunBtn");
-        btn.disabled = true;
-        btn.textContent = "⏳ 분석 중... (1~2분 소요)";
+    let tradeChartInstance=null;
+    async function runBacktest(){const btn=document.getElementById("btRunBtn");btn.disabled=true;btn.textContent="⏳ 실행 중...";const strategies=[];document.querySelectorAll('#strategyToggles .toggle-btn.active').forEach(b=>strategies.push(b.dataset.strategy));if(!strategies.length){alert("전략을 선택하세요!");btn.disabled=false;btn.textContent="🚀 백테스트 실행";return;}try{const res=await fetch(`${API}/backtest/run`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("btCode").value,startDate:document.getElementById("btStart").value,endDate:document.getElementById("btEnd").value,strategies,threshold:parseInt(document.getElementById("btThreshold").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;document.getElementById("btResult").style.display="block";const p=data.totalProfitPct||0;const pe=document.getElementById("btProfit");pe.textContent=p.toFixed(1)+"%";pe.className=p>=0?"value profit-positive":"value profit-negative";document.getElementById("btWinRate").textContent=(data.winRate||0).toFixed(1)+"%";document.getElementById("btTrades").textContent=data.totalTrades||0;const me=document.getElementById("btMDD");me.textContent=(data.maxDrawdownPct||0).toFixed(1)+"%";me.className="value profit-negative";if(tradeChartInstance)tradeChartInstance.destroy();const trades=data.trades||[];if(trades.length){tradeChartInstance=new Chart(document.getElementById('tradeChart'),{type:'line',data:{labels:trades.map(t=>t.date),datasets:[{label:'주가',data:trades.map(t=>t.price),borderColor:'#00d4ff',borderWidth:2,pointRadius:0,tension:0.3,fill:false},{label:'매수',data:trades.map(t=>t.type==='BUY'?t.price:null),borderColor:'transparent',backgroundColor:'#53cf60',pointRadius:8,pointStyle:'triangle',showLine:false},{label:'매도',data:trades.map(t=>t.type==='SELL'?t.price:null),borderColor:'transparent',backgroundColor:'#cf5353',pointRadius:8,pointStyle:'triangle',pointRotation:180,showLine:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'매매 포인트 차트',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#666'},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#00d4ff'},grid:{color:'#1a1a2e'}}}}});}loadBacktests();}catch(e){alert("백테스트 실패: "+e.message);}btn.disabled=false;btn.textContent="🚀 백테스트 실행";}
 
-        const params = {
-            query: document.getElementById("agentQuery").value,
-            days: parseInt(document.getElementById("agentDays").value)
-        };
+    let portfolioChartInstance=null;
+    async function runSimulation(){const btn=document.getElementById("simRunBtn");btn.disabled=true;btn.textContent="⏳ 실행 중...";const strategies=[];document.querySelectorAll('#simToggles .toggle-btn.active').forEach(b=>strategies.push(b.dataset.strategy));if(!strategies.length){alert("전략을 선택하세요!");btn.disabled=false;btn.textContent="💰 모의투자 시작";return;}try{const res=await fetch(`${API}/backtest/simulation`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("simCode").value,startDate:document.getElementById("simStart").value,endDate:document.getElementById("simEnd").value,strategies,threshold:parseInt(document.getElementById("simThreshold").value),initialCash:parseInt(document.getElementById("simCash").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;document.getElementById("simResult").style.display="block";document.getElementById("simInitial").textContent="$"+(data.initialCash||0).toLocaleString();document.getElementById("simFinal").textContent="$"+(data.finalValue||0).toLocaleString();const ret=data.totalReturn||0;const re=document.getElementById("simReturn");re.textContent=ret.toFixed(1)+"%";re.className=ret>=0?"value profit-positive":"value profit-negative";document.getElementById("simTradeCount").textContent=Math.floor((data.trades||[]).length/2);if(portfolioChartInstance)portfolioChartInstance.destroy();const portfolio=data.portfolio||[];if(portfolio.length){const baseline=new Array(portfolio.length).fill(data.initialCash);portfolioChartInstance=new Chart(document.getElementById('portfolioChart'),{type:'line',data:{labels:portfolio.map((p,i)=>i%10===0?p.date.substring(5):''),datasets:[{label:'내 자산($)',data:portfolio.map(p=>p.value),borderColor:'#53cf60',backgroundColor:'rgba(83,207,96,0.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},{label:'초기자금',data:baseline,borderColor:'#666',borderDash:[5,5],pointRadius:0,borderWidth:1,fill:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'자산 변화 추이',color:'#53cf60',font:{size:14}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:12},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#53cf60',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1a1a2e'}}}}});}}catch(e){alert("모의투자 실패: "+e.message);}btn.disabled=false;btn.textContent="💰 모의투자 시작";}
 
-        try {
-            const res = await fetch(`${API}/backtest/agent`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(params)
-            });
-            const result = await res.json();
+    let predictionChartInstance=null;
+    async function runPrediction(){const btn=document.getElementById("predRunBtn");btn.disabled=true;btn.textContent="⏳ 예측 중...";try{const res=await fetch(`${API}/backtest/predict`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("predCode").value||"KS11",days:parseInt(document.getElementById("predDays").value)||100})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;document.getElementById("predResult").style.display="block";document.getElementById("predMAPE").textContent=(data.mape||0)+"%";document.getElementById("predDirection").textContent=(data.directionAccuracy||0)+"%";document.getElementById("predActual").textContent=(data.latestActual||0).toLocaleString();document.getElementById("predPredicted").textContent=(data.latestPredicted||0).toLocaleString();if(predictionChartInstance)predictionChartInstance.destroy();predictionChartInstance=new Chart(document.getElementById('predictionChart'),{type:'line',data:{labels:data.dates.map((d,i)=>i%5===0?d.substring(5):''),datasets:[{label:'실제 주가',data:data.actuals,borderColor:'#00d4ff',borderWidth:2,pointRadius:0,tension:0.3},{label:'LSTM 예측',data:data.predictions,borderColor:'#ff6b6b',borderWidth:2,borderDash:[5,5],pointRadius:0,tension:0.3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'LSTM AI 주가 예측',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:15},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#00d4ff',callback:v=>v.toLocaleString()},grid:{color:'#1a1a2e'}}}}});}catch(e){alert("LSTM 예측 실패: "+e.message);}btn.disabled=false;btn.textContent="🤖 AI 예측 실행";}
 
-            let data;
-            if (typeof result.data === 'string') {
-                data = JSON.parse(result.data);
-            } else {
-                data = result.data;
-            }
-
-            if (data.error) {
-                alert("분석 실패: " + data.error);
-                btn.disabled = false;
-                btn.textContent = "🤖 AI 분석 실행";
-                return;
-            }
-
-            const resultDiv = document.getElementById("agentResult");
-            resultDiv.style.display = "block";
-
-            document.getElementById("agentDate").textContent = data.analysisDate;
-            document.getElementById("agentScanned").textContent = data.totalScanned;
-            document.getElementById("agentTop").textContent =
-                data.top5[0].name + "(" + data.top5[0].code + ")";
-            document.getElementById("agentTopScore").textContent = data.top5[0].score;
-
-            drawAgentScoreChart(data.top5);
-            drawAgentRadarChart(data.top5);
-            drawAgentTable(data.candidates);
-
-        } catch (e) {
-            alert("AI Agent 실행 실패: " + e.message);
-        }
-
-        btn.disabled = false;
-        btn.textContent = "🤖 AI 분석 실행";
-    }
-
-    function drawAgentScoreChart(top5) {
-        if (agentScoreChartInstance) agentScoreChartInstance.destroy();
-
-        const labels = top5.map(s => s.name);
-        const scores = top5.map(s => s.score);
-        const colors = ['#ff6b6b', '#ffa502', '#2ed573', '#1e90ff', '#a55eea'];
-
-        const ctx = document.getElementById('agentScoreChart');
-        agentScoreChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '종합 점수',
-                    data: scores,
-                    backgroundColor: colors.map(c => c + '88'),
-                    borderColor: colors,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false },
-                    title: {
-                        display: true,
-                        text: 'TOP 5 종목 점수',
-                        color: '#00d4ff',
-                        font: { size: 14 }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#888' },
-                        grid: { color: '#1a1a2e' }
-                    },
-                    y: {
-                        ticks: { color: '#ddd', font: { size: 13 } },
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    }
-
-    function drawAgentRadarChart(top5) {
-        if (agentRadarChartInstance) agentRadarChartInstance.destroy();
-
-        const maxVals = {
-            price_chg: Math.max(...top5.map(s => Math.abs(s.price_chg))) || 1,
-            rsi: 100,
-            vol_ratio: Math.max(...top5.map(s => s.vol_ratio)) || 1,
-            volatility: Math.max(...top5.map(s => s.volatility)) || 1,
-            score: Math.max(...top5.map(s => s.score)) || 1
-        };
-
-        const colors = [
-            'rgba(255,107,107,0.6)', 'rgba(255,165,2,0.6)',
-            'rgba(46,213,115,0.6)', 'rgba(30,144,255,0.6)',
-            'rgba(165,94,234,0.6)'
-        ];
-
-        const datasets = top5.map((s, i) => ({
-            label: s.name,
-            data: [
-                Math.abs(s.price_chg) / maxVals.price_chg * 100,
-                s.rsi,
-                s.vol_ratio / maxVals.vol_ratio * 100,
-                s.volatility / maxVals.volatility * 100,
-                s.score / maxVals.score * 100
-            ],
-            backgroundColor: colors[i].replace('0.6', '0.15'),
-            borderColor: colors[i],
-            borderWidth: 2,
-            pointRadius: 3
-        }));
-
-        const ctx = document.getElementById('agentRadarChart');
-        agentRadarChartInstance = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: ['수익률', 'RSI', '거래량', '변동성', '점수'],
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'TOP 5 종목 지표 비교',
-                        color: '#00d4ff',
-                        font: { size: 14 }
-                    },
-                    legend: { labels: { color: '#888' } }
-                },
-                scales: {
-                    r: {
-                        ticks: { color: '#666', backdropColor: 'transparent' },
-                        grid: { color: '#1a1a2e' },
-                        pointLabels: { color: '#aaa', font: { size: 12 } }
-                    }
-                }
-            }
-        });
-    }
-
-    function drawAgentTable(candidates) {
-        if (!candidates || candidates.length === 0) {
-            document.getElementById("agentTable").innerHTML =
-                '<div class="loading">추가 후보 종목이 없습니다.</div>';
-            return;
-        }
-
-        let html = `<h3 style="color:#00d4ff;">추가 후보 종목</h3>
-            <table><tr>
-                <th>종목명(코드)</th>
-                <th>수익률</th>
-                <th>RSI</th>
-                <th>거래비율</th>
-                <th>점수</th>
-            </tr>`;
-
-        for (const s of candidates.slice(0, 20)) {
-            const profitClass = s.price_chg >= 0 ? 'profit-positive' : 'profit-negative';
-            html += `<tr>
-                <td>${s.name}(${s.code})</td>
-                <td class="${profitClass}">${s.price_chg}%</td>
-                <td>${s.rsi}</td>
-                <td>${s.vol_ratio}배</td>
-                <td>${s.score}</td>
-            </tr>`;
-        }
-
-        html += '</table>';
-        document.getElementById("agentTable").innerHTML = html;
-    }
-    </script>
+    let agentScoreChartInstance=null,agentRadarChartInstance=null;
+    async function runAgentAnalysis(){const btn=document.getElementById("agentRunBtn");btn.disabled=true;btn.textContent="⏳ 분석 중...";try{const res=await fetch(`${API}/backtest/agent`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:document.getElementById("agentQuery").value,days:parseInt(document.getElementById("agentDays").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;if(data.error){alert("분석 실패: "+data.error);btn.disabled=false;btn.textContent="🤖 AI 분석 실행";return;}document.getElementById("agentResult").style.display="block";document.getElementById("agentDate").textContent=data.analysisDate;document.getElementById("agentScanned").textContent=data.totalScanned;document.getElementById("agentTop").textContent=data.top5[0].name+"("+data.top5[0].code+")";document.getElementById("agentTopScore").textContent=data.top5[0].score;
+    if(agentScoreChartInstance)agentScoreChartInstance.destroy();const colors=['#ff6b6b','#ffa502','#2ed573','#1e90ff','#a55eea'];agentScoreChartInstance=new Chart(document.getElementById('agentScoreChart'),{type:'bar',data:{labels:data.top5.map(s=>s.name),datasets:[{label:'점수',data:data.top5.map(s=>s.score),backgroundColor:colors.map(c=>c+'88'),borderColor:colors,borderWidth:2}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},title:{display:true,text:'TOP 5 종목 점수',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#888'},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#ddd',font:{size:13}},grid:{display:false}}}}});
+    if(agentRadarChartInstance)agentRadarChartInstance.destroy();const mv={pc:Math.max(...data.top5.map(s=>Math.abs(s.price_chg)))||1,vr:Math.max(...data.top5.map(s=>s.vol_ratio))||1,vo:Math.max(...data.top5.map(s=>s.volatility))||1,sc:Math.max(...data.top5.map(s=>s.score))||1};const rc=['rgba(255,107,107,0.6)','rgba(255,165,2,0.6)','rgba(46,213,115,0.6)','rgba(30,144,255,0.6)','rgba(165,94,234,0.6)'];agentRadarChartInstance=new Chart(document.getElementById('agentRadarChart'),{type:'radar',data:{labels:['수익률','RSI','거래량','변동성','점수'],datasets:data.top5.map((s,i)=>({label:s.name,data:[Math.abs(s.price_chg)/mv.pc*100,s.rsi,s.vol_ratio/mv.vr*100,s.volatility/mv.vo*100,s.score/mv.sc*100],backgroundColor:rc[i].replace('0.6','0.15'),borderColor:rc[i],borderWidth:2,pointRadius:3}))},options:{responsive:true,plugins:{title:{display:true,text:'TOP 5 지표 비교',color:'#00d4ff',font:{size:14}},legend:{labels:{color:'#888'}}},scales:{r:{ticks:{color:'#666',backdropColor:'transparent'},grid:{color:'#1a1a2e'},pointLabels:{color:'#aaa',font:{size:12}}}}}});
+    let th='<h3 style="color:#00d4ff;">추가 후보 종목</h3><table><tr><th>종목(코드)</th><th>수익률</th><th>RSI</th><th>거래비율</th><th>점수</th></tr>';for(const s of(data.candidates||[]).slice(0,20)){th+=`<tr><td>${s.name}(${s.code})</td><td class="${s.price_chg>=0?'profit-positive':'profit-negative'}">${s.price_chg}%</td><td>${s.rsi}</td><td>${s.vol_ratio}배</td><td>${s.score}</td></tr>`;}document.getElementById("agentTable").innerHTML=th+'</table>';}catch(e){alert("AI Agent 실패: "+e.message);}btn.disabled=false;btn.textContent="🤖 AI 분석 실행";}
+</script>
 </body>
 </html>
