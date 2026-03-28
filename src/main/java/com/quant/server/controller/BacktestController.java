@@ -119,6 +119,15 @@ public class BacktestController {
         return ResponseEntity.ok(ApiResponse.ok("전체 삭제 완료"));
     }
 
+    @GetMapping("/realtime/{code}")
+    public ResponseEntity<ApiResponse<String>> getRealtimeStock(
+            @PathVariable String code,
+            @RequestParam(defaultValue = "365") int days) {
+
+        log.info("[실시간 데이터] {} | {}일", code, days);
+        String result = backtestRunService.fetchStockData(code, days);
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
 
     private Double toDouble(Object obj) {
 

@@ -11,17 +11,33 @@ from sklearn.preprocessing import MinMaxScaler
 import os
 import FinanceDataReader as fdr
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
 current_code = 'AAPL'
 
 def is_korean_stock(code):
-    """한국 종목인지 판별: 숫자 6자리이거나 KS11, KQ11 등"""
+    """한국 종목인지 판별"""
+    code = code.replace('.KS', '').replace('.KQ', '')
     if code in ['KS11', 'KQ11', 'KS200']:
         return True
     if code.isdigit() and len(code) == 6:
         return True
     return False
 
+def clean_code(code):
+    """종목 코드 정리: .KS, .KQ 제거"""
+    return code.replace('.KS', '').replace('.KQ', '')
+
 def fetch_stock_data(code, start_date, end_date):
+    code = clean_code(code)
     """종목 코드에 따라 적절한 라이브러리로 데이터 가져오기"""
     if is_korean_stock(code):
         df = fdr.DataReader(code, start_date, end_date)
@@ -278,9 +294,6 @@ def strategy_lstm(df):
     safe_code = current_code.replace('^', '').replace('/', '_')
     model_path = os.path.join(script_dir, 'models', f'{safe_code}_lstm.pth')
 
-    # 종목 전용 모델이 없으면 코스피 모델로 대체
-    if not os.path.exists(model_path):
-        model_path = os.path.join(script_dir, 'models', 'KS11_lstm.pth')
     
     # 모델 파일이 없으면 신호 없음으로 리턴
     if not os.path.exists(model_path):
@@ -400,6 +413,7 @@ def run_ensemble(df, active_strategies, threshold=2):
 def run_backtest(code, start_date, end_date, active_strategies,
                  threshold=2, initial_cash=10000):
     global current_code
+    code = clean_code(code)
     current_code = code
     
     df = fetch_stock_data(code, start_date, end_date)
@@ -519,6 +533,7 @@ def run_backtest(code, start_date, end_date, active_strategies,
 def run_simulation(code, start_date, end_date, active_strategies,
                    threshold=2, initial_cash=10000):
     global current_code
+    code = clean_code(code)
     current_code = code
     
     df = fetch_stock_data(code, start_date, end_date)
@@ -618,7 +633,7 @@ if __name__ == '__main__':
     if mode == 'simulation':
         result = run_simulation(code, start_date, end_date, strategies, threshold, initial_cash)
         if result:
-            print(json.dumps(result))
+            print(json.dumps(result, cls=NpEncoder))
     else:
         result = run_backtest(
             code, start_date, end_date, strategies, threshold)
@@ -632,4 +647,4 @@ if __name__ == '__main__':
                     file=sys.stderr)
             except Exception as e:
                 print(f"[저장 실패] {e}", file=sys.stderr)
-            print(json.dumps(result))
+            print(json.dumps(result, cls=NpEncoder))

@@ -198,4 +198,36 @@ public class BacktestRunService {
             return "{\"error\":\"" + e.getMessage() + "\"}";
         }
     }
+
+    public String fetchStockData(String code, int days) {
+        log.info("[주식데이터] {} ({}일)", code, days);
+
+        try {
+            String stockScript = scriptPath.replace("backtest_runner.py", "stock_data.py");
+
+            ProcessBuilder pb = new ProcessBuilder(pythonPath, stockScript, code, String.valueOf(days));
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), "UTF-8"));
+            String line;
+            String lastLine = "";
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("{")) lastLine = line;
+            }
+
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0 && !lastLine.isEmpty()) {
+                return lastLine;
+            } else {
+                return "{\"error\":\"데이터 조회 실패\"}";
+            }
+        } catch (Exception e) {
+            log.error("[주식데이터] 에러: {}", e.getMessage());
+            return "{\"error\":\"" + e.getMessage() + "\"}";
+        }
+    }
 }
