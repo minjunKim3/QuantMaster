@@ -8,6 +8,52 @@ import os
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+def extract_weights_from_llm(query):
+    """사용자 요청을 LLM이 분석하여 6개 지표 가중치 자동 설정"""
+    default_weights = {
+        'price_chg': -1.0, 'vol_ratio': 1.0, 'rebound': 1.0,
+        'stability': 0.0, 'trend': 0.0, 'volatility': 1.0
+    }
+    
+    if not query or query == "시총 상위 종목 스캔":
+        return default_weights
+    
+    try:
+        import re
+        from langchain_ollama import OllamaLLM
+        
+        llm = OllamaLLM(model="gemma3:4b")
+        
+        prompt = f"""사용자 요청을 분석하여 다음 지표 가중치(-1.0 ~ 1.0)를 JSON으로 설정하세요.
+
+[지표별 키워드 매핑 가이드]
+- price_chg: 급등(+), 상승(+), 하락(-), 급락(-)
+- vol_ratio: 수급, 거래량 많은, 관심집중, 거래량 급증
+- rebound: 저점, 반등, 저평가, RSI 낮음, BB 하단
+- stability: 안정성, 우량주, 이격도 낮음, 꾸준한, 정배열
+- trend: 상승 추세, MACD, 골든크로스, 상승세 유지
+- volatility: 변동성, 단타, 위험, 기회
+
+결과는 오직 JSON만 출력하세요. 다른 설명은 하지 마세요.
+{{ "days": 정수, "weights": {{ "price_chg": 0.0, "vol_ratio": 0.0, "rebound": 0.0, "stability": 0.0, "trend": 0.0, "volatility": 0.0 }} }}
+요청: {query}"""
+        
+        print(f"[Agent] LLM 가중치 추출 중...", file=sys.stderr)
+        res = llm.invoke(prompt)
+        
+        match = re.search(r'\{.*\}', res, re.DOTALL)
+        if match:
+            parsed = json.loads(match.group())
+            if 'weights' in parsed:
+                print(f"[Agent] LLM 가중치: {parsed['weights']}", file=sys.stderr)
+                return parsed['weights']
+        
+        return default_weights
+        
+    except Exception as e:
+        print(f"[Agent] LLM 연결 실패, 기본 가중치 사용: {e}", file=sys.stderr)
+        return default_weights
+
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer): return int(obj)
@@ -56,15 +102,8 @@ def run_analysis(query="", days=7):
     
     print(f"[Agent] 분석 시작 ({days}일 기준)", file=sys.stderr)
     
-    # 가중치 설정 (기본값 — 나중에 LLM이 동적으로 바꿀 부분)
-    weights = {
-        'price_chg': -1.0,
-        'vol_ratio': 1.0,
-        'rebound': 1.0,
-        'stability': 0.0,
-        'trend': 0.0,
-        'volatility': 1.0
-    }
+    # LLM으로 가중치 동적 추출 시도
+    weights = extract_weights_from_llm(query)
     
     # 종목 리스트 가져오기
     try:
