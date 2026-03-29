@@ -8,6 +8,13 @@ import FinanceDataReader as fdr
 from sklearn.preprocessing import MinMaxScaler
 import os
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer): return int(obj)
+        if isinstance(obj, np.floating): return float(obj)
+        if isinstance(obj, np.ndarray): return obj.tolist()
+        return super().default(obj)
+
 # ============================================
 # 모델 정의 (학습 때와 동일해야 함!)
 # ============================================
@@ -45,10 +52,17 @@ if __name__ == '__main__':
     
     code = params.get('code', 'KS11')
     days = params.get('days', 100)
+
+    code = code.replace('.KS', '').replace('.KQ', '')
     
     # 모델 파일 경로
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(script_dir, 'kospi_lstm_v2_best.pth')
+    safe_code = code.replace('^', '').replace('/', '_').replace('.KS', '').replace('.KQ', '')
+    model_path = os.path.join(script_dir, 'models', f'{safe_code}_lstm.pth')
+
+    if not os.path.exists(model_path):
+        print(json.dumps({"error": f"{code}의 LSTM 모델이 없습니다. 학습된 종목: KS11, KQ11, 005930, 000660, 035720"}))
+        sys.exit(0)
     
     print(f"[LSTM] 예측 시작: {code}", file=sys.stderr)
     
@@ -140,7 +154,7 @@ if __name__ == '__main__':
             'predictions': predictions
         }
         
-        print(json.dumps(result))
+        print(json.dumps(result, cls=NpEncoder))
         
     except Exception as e:
         print(json.dumps({"error": str(e)}))
