@@ -196,6 +196,35 @@ def create_features(df, external_data=None):
         for name, series in external_data.items():
             aligned = series.reindex(df.index, method='ffill')
             features[f'{name}_norm'] = (aligned / aligned.mean()).values
+
+    # [추가 지표 1] Stochastic %K, %D
+    low_14 = pd.Series(low).rolling(14).min()
+    high_14 = pd.Series(high).rolling(14).max()
+    stoch_k = ((close - low_14) / (high_14 - low_14 + 1e-10) * 100).values
+    features['stoch_k'] = stoch_k
+    features['stoch_d'] = pd.Series(stoch_k).rolling(3).mean().values
+    
+    # [추가 지표 2] Williams %R
+    features['williams_r'] = (-(high_14 - close) / (high_14 - low_14 + 1e-10) * 100).values
+    
+    # [추가 지표 3] OBV (On Balance Volume)
+    obv = np.zeros(len(close))
+    for j in range(1, len(close)):
+        if close[j] > close[j-1]:
+            obv[j] = obv[j-1] + volume[j]
+        elif close[j] < close[j-1]:
+            obv[j] = obv[j-1] - volume[j]
+        else:
+            obv[j] = obv[j-1]
+    features['obv'] = obv / (np.max(np.abs(obv)) + 1e-10)
+    
+    # [추가 지표 4] Price ROC (Rate of Change)
+    features['roc_5'] = pd.Series(close).pct_change(5).values
+    features['roc_20'] = pd.Series(close).pct_change(20).values
+    
+    # [추가 지표 5] 이격도 (MA Gap)
+    features['ma_gap_5'] = ((close - pd.Series(close).rolling(5).mean()) / (pd.Series(close).rolling(5).mean() + 1e-10)).values
+    features['ma_gap_20'] = ((close - pd.Series(close).rolling(20).mean()) / (pd.Series(close).rolling(20).mean() + 1e-10)).values
     
     # 결측치 처리
     features = features.ffill().bfill().fillna(0)
@@ -360,6 +389,26 @@ def train_model(code, start_date='2015-01-01'):
         rmse = np.sqrt(mean_squared_error(actual, predicted))
         print(f"  t+{step+1}: MAPE {mape:.2f}% | RMSE {rmse:.2f}")
     
+    # [개선] Systematic Bias 보정
+    print(f"\n[5.5] Systematic Bias 계산")
+    model.eval()
+    with torch.no_grad():
+        all_pred_scaled = model(torch.FloatTensor(X).to(device)).cpu().numpy()
+    all_pred_raw = target_scaler.inverse_transform(all_pred_scaled)
+    
+    systematic_bias = y.mean(axis=0) - all_pred_raw.mean(axis=0)
+    print(f"  Bias: {systematic_bias}")
+    print(f"  (이만큼 예측에 더해서 보정합니다)")
+    
+    # Bias 보정 후 재평가
+    print(f"\n[6] 평가 (Bias 보정 후)")
+    for step in range(3):
+        actual = y_test_raw[:, step] * close_mean
+        predicted = (pred_raw[:, step] + systematic_bias[step]) * close_mean
+        mape = np.mean(np.abs((actual - predicted) / actual)) * 100
+        rmse = np.sqrt(mean_squared_error(actual, predicted))
+        print(f"  t+{step+1}: MAPE {mape:.2f}% | RMSE {rmse:.2f}")
+    
     # 8. 저장
     print(f"\n[6] 모델 저장")
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -381,6 +430,7 @@ def train_model(code, start_date='2015-01-01'):
         'hidden_size': 128,
         'num_layers': 2,
         'dropout': 0.2,
+        'systematic_bias': systematic_bias.tolist(),
     }
     
     with open(os.path.join(model_dir, f'{safe_code}_scaler.pkl'), 'wb') as f:
