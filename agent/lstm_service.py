@@ -246,6 +246,8 @@ if __name__ == '__main__':
             # 예측
             close_normalized = features['close'].values / close_mean
             predictions_t1 = []
+            predictions_t2 = []
+            predictions_t3 = []
             actuals = []
             dates = []
             
@@ -263,7 +265,12 @@ if __name__ == '__main__':
                 actual_price = df['Close'].iloc[i]
                 date = df.index[i].strftime('%Y-%m-%d')
                 
+                pred_price_t2 = pred_raw[1] * close_mean
+                pred_price_t3 = pred_raw[2] * close_mean
+                
                 predictions_t1.append(round(float(pred_price_t1), 2))
+                predictions_t2.append(round(float(pred_price_t2), 2))
+                predictions_t3.append(round(float(pred_price_t3), 2))
                 actuals.append(round(float(actual_price), 2))
                 dates.append(date)
             
@@ -338,9 +345,13 @@ if __name__ == '__main__':
             'directionAccuracy': direction,
             'latestActual': actuals[-1],
             'latestPredicted': predictions_t1[-1],
+            'predictedT2': predictions_t2[-1] if use_v3 and predictions_t2 else None,
+            'predictedT3': predictions_t3[-1] if use_v3 and predictions_t3 else None,
             'dates': dates,
             'actuals': actuals,
-            'predictions': predictions_t1
+            'predictions': predictions_t1,
+            'predictions_t2': predictions_t2 if use_v3 else None,
+            'predictions_t3': predictions_t3 if use_v3 else None
         }
         
         sys.stdout.reconfigure(encoding='utf-8')

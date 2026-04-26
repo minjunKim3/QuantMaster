@@ -189,11 +189,19 @@
         <div style="margin-bottom:15px;"><label style="color:#888;font-size:0.85rem;">예측 기간 (일)</label><input type="number" id="predDays" value="100" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
         <button class="run-btn" style="background:#ff6b6b;color:#000;" id="predRunBtn" onclick="runPrediction()">🤖 AI 예측 실행</button>
         <div id="predResult" style="display:none;margin-top:15px;">
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
                 <div class="stat-item"><div class="value" id="predMAPE">0%</div><div class="label">오차율 (MAPE)</div></div>
                 <div class="stat-item"><div class="value" id="predDirection">0%</div><div class="label">방향 정확도</div></div>
                 <div class="stat-item"><div class="value" id="predActual">0</div><div class="label">실제 종가</div></div>
                 <div class="stat-item"><div class="value" id="predPredicted">0</div><div class="label">예측 종가</div></div>
+            </div>
+            <div id="predSteps" style="display:none;margin-bottom:15px;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                    <div class="stat-item" style="border-left:3px solid #00d4ff;"><div class="value" id="predT1" style="color:#00d4ff;">-</div><div class="label">📅 내일 (t+1)</div></div>
+                    <div class="stat-item" style="border-left:3px solid #53cf60;"><div class="value" id="predT2" style="color:#53cf60;">-</div><div class="label">📅 모레 (t+2)</div></div>
+                    <div class="stat-item" style="border-left:3px solid #ffa502;"><div class="value" id="predT3" style="color:#ffa502;">-</div><div class="label">📅 글피 (t+3)</div></div>
+                </div>
+                <div id="predModelBadge" style="text-align:center;margin-top:8px;"></div>
             </div>
             <canvas id="predictionChart"></canvas>
         </div>
@@ -348,6 +356,7 @@ async function loadStockData() {
             document.getElementById("predDirection").textContent=(data.directionAccuracy||0)+"%";
             document.getElementById("predActual").textContent=(data.latestActual||0).toLocaleString();
             document.getElementById("predPredicted").textContent=(data.latestPredicted||0).toLocaleString();
+            if(data.predictedT2 && data.predictedT3){document.getElementById("predSteps").style.display="block";document.getElementById("predT1").textContent=data.latestPredicted.toLocaleString();document.getElementById("predT2").textContent=data.predictedT2.toLocaleString();document.getElementById("predT3").textContent=data.predictedT3.toLocaleString();document.getElementById("predModelBadge").innerHTML='<span style="background:#1a4a2a;color:#53cf60;padding:4px 12px;border-radius:12px;font-size:11px;">V3 모델 · 24개 특성 · DWT 웨이블릿 · 3스텝 예측</span>';}else{document.getElementById("predSteps").style.display="none";}
             if(predictionChartInstance)predictionChartInstance.destroy();
             predictionChartInstance=new Chart(document.getElementById('predictionChart'),{type:'line',data:{labels:data.dates.map((d,i)=>i%5===0?d.substring(5):''),datasets:[{label:'실제 주가',data:data.actuals,borderColor:'#00d4ff',borderWidth:2,pointRadius:0,tension:0.3},{label:'LSTM 예측',data:data.predictions,borderColor:'#ff6b6b',borderWidth:2,borderDash:[5,5],pointRadius:0,tension:0.3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'LSTM AI 주가 예측',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:15},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#00d4ff',callback:v=>v.toLocaleString()},grid:{color:'#1a1a2e'}}}}});
         }catch(e){alert("LSTM 예측 실패: "+e.message);}

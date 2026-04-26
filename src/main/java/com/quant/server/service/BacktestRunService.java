@@ -36,32 +36,27 @@ public class BacktestRunService {
             String lstmScript = scriptPath.replace("backtest_runner.py", "lstm_service.py");
 
             ProcessBuilder pb = new ProcessBuilder(pythonPath, lstmScript, tempFile.toString());
-            pb.redirectErrorStream(false);
+            pb.redirectErrorStream(true);
 
             Process process = pb.start();
 
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()));
-            BufferedReader errReader = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()));
-
-            // stderr는 로그로
-            String errLine;
-            while ((errLine = errReader.readLine()) != null) {
-                log.info("[LSTM] {}", errLine);
-            }
-
-            // stdout에서 JSON 읽기
+            // stdout에서 JSON 읽기 (stderr도 합침)
             String line;
             String lastLine = "";
             while ((line = reader.readLine()) != null) {
-                lastLine = line;
+                if (line.startsWith("{")) {
+                    lastLine = line;
+                } else {
+                    log.info("[LSTM] {}", line);
+                }
             }
 
             int exitCode = process.waitFor();
             Files.delete(tempFile);
 
-            if (exitCode == 0) {
+            if (exitCode == 0 && !lastLine.isEmpty()) {
                 log.info("[LSTM 예측] 완료!");
                 return lastLine;
             } else {
