@@ -253,7 +253,7 @@ if __name__ == '__main__':
             
             start_idx = max(WINDOW, len(scaled) - days)
             
-            for i in range(start_idx, len(scaled)):
+            for i in range(start_idx, len(scaled) - 3):
                 window_data = scaled[i - WINDOW:i]
                 X = torch.FloatTensor(window_data).unsqueeze(0)
                 
@@ -261,12 +261,21 @@ if __name__ == '__main__':
                     pred_scaled = model(X).numpy()
                 
                 pred_raw = target_scaler.inverse_transform(pred_scaled.reshape(1, -1))[0]
-                pred_price_t1 = pred_raw[0] * close_mean
-                actual_price = df['Close'].iloc[i]
-                date = df.index[i].strftime('%Y-%m-%d')
                 
-                pred_price_t2 = pred_raw[1] * close_mean
-                pred_price_t3 = pred_raw[2] * close_mean
+                current_price = float(df['Close'].iloc[i])
+                actual_price = float(df['Close'].iloc[i + 1]) if i + 1 < len(df) else current_price
+                
+                # 수익률 예측 → 가격으로 변환
+                if meta.get('target_type') == 'returns':
+                    pred_price_t1 = current_price * (1 + pred_raw[0])
+                    pred_price_t2 = current_price * (1 + pred_raw[1])
+                    pred_price_t3 = current_price * (1 + pred_raw[2])
+                else:
+                    pred_price_t1 = pred_raw[0] * close_mean
+                    pred_price_t2 = pred_raw[1] * close_mean
+                    pred_price_t3 = pred_raw[2] * close_mean
+                
+                date = df.index[i].strftime('%Y-%m-%d')
                 
                 predictions_t1.append(round(float(pred_price_t1), 2))
                 predictions_t2.append(round(float(pred_price_t2), 2))

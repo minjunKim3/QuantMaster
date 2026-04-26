@@ -270,18 +270,21 @@ def train_model(code, start_date='2015-01-01'):
     feature_values = features.values
     scaled = scaler.fit_transform(feature_values)
     
-    # 5. 윈도우 + 3스텝 타겟 생성
+# 5. 윈도우 + 3스텝 타겟 생성 (수익률 예측!)
     WINDOW = 60
     close_idx = list(features.columns).index('close')
-    
-    # 정규화된 종가
-    close_normalized = feature_values[:, close_idx] / close_mean
+    close_vals = feature_values[:, close_idx]
     
     X, y = [], []
     for i in range(WINDOW, len(scaled) - 3):
         X.append(scaled[i - WINDOW:i])
-        # 3스텝 타겟: t+1, t+2, t+3
-        y.append([close_normalized[i + 1], close_normalized[i + 2], close_normalized[i + 3]])
+        # 수익률 타겟: 현재 대비 변화율 (예: +0.01 = 1% 상승)
+        current = close_vals[i]
+        y.append([
+            (close_vals[i + 1] - current) / (current + 1e-10),
+            (close_vals[i + 2] - current) / (current + 1e-10),
+            (close_vals[i + 3] - current) / (current + 1e-10)
+        ])
     
     X = np.array(X, dtype=np.float32)
     y = np.array(y, dtype=np.float32)
@@ -381,12 +384,20 @@ def train_model(code, start_date='2015-01-01'):
     
     pred_raw = target_scaler.inverse_transform(pred_scaled)
     
-    # 각 스텝별 MAPE
+    # 테스트 구간의 현재 가격 가져오기
+    test_start_idx = WINDOW + split
+    
     for step in range(3):
-        actual = y_test_raw[:, step] * close_mean
-        predicted = pred_raw[:, step] * close_mean
-        mape = np.mean(np.abs((actual - predicted) / actual)) * 100
-        rmse = np.sqrt(mean_squared_error(actual, predicted))
+        actual_returns = y_test_raw[:, step]
+        predicted_returns = pred_raw[:, step]
+        
+        # 수익률 → 가격 변환
+        current_prices = close_vals[test_start_idx:test_start_idx + len(y_test_raw)]
+        actual_prices = current_prices * (1 + actual_returns)
+        predicted_prices = current_prices * (1 + predicted_returns)
+        
+        mape = np.mean(np.abs((actual_prices - predicted_prices) / actual_prices)) * 100
+        rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
         print(f"  t+{step+1}: MAPE {mape:.2f}% | RMSE {rmse:.2f}")
     
     # [개선] Systematic Bias 보정
@@ -398,15 +409,19 @@ def train_model(code, start_date='2015-01-01'):
     
     systematic_bias = y.mean(axis=0) - all_pred_raw.mean(axis=0)
     print(f"  Bias: {systematic_bias}")
-    print(f"  (이만큼 예측에 더해서 보정합니다)")
     
     # Bias 보정 후 재평가
     print(f"\n[6] 평가 (Bias 보정 후)")
     for step in range(3):
-        actual = y_test_raw[:, step] * close_mean
-        predicted = (pred_raw[:, step] + systematic_bias[step]) * close_mean
-        mape = np.mean(np.abs((actual - predicted) / actual)) * 100
-        rmse = np.sqrt(mean_squared_error(actual, predicted))
+        actual_returns = y_test_raw[:, step]
+        predicted_returns = pred_raw[:, step] + systematic_bias[step]
+        
+        current_prices = close_vals[test_start_idx:test_start_idx + len(y_test_raw)]
+        actual_prices = current_prices * (1 + actual_returns)
+        predicted_prices = current_prices * (1 + predicted_returns)
+        
+        mape = np.mean(np.abs((actual_prices - predicted_prices) / actual_prices)) * 100
+        rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
         print(f"  t+{step+1}: MAPE {mape:.2f}% | RMSE {rmse:.2f}")
     
     # 8. 저장
@@ -430,6 +445,7 @@ def train_model(code, start_date='2015-01-01'):
         'hidden_size': 128,
         'num_layers': 2,
         'dropout': 0.2,
+        'target_type': 'returns',
         'systematic_bias': systematic_bias.tolist(),
     }
     
