@@ -1,4 +1,6 @@
 HELP.md
+
+### Maven / Spring Boot ###
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -33,6 +35,99 @@ build/
 .vscode/
 
 ### Python ###
-agent/venv/
-agent/__pycache__/
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+
+### Virtual Environments (모든 venv 차단) ###
+agent/venv/
+agent/one/
+agent/fresh_venv/
+agent/test_env/
+agent/AItr_manager/venv/
+**/venv/
+**/.venv/
+**/env/
+
+### 🚨 대용량 모델 파일 (절대 커밋 금지!) ###
+*.gguf
+*.pth
+*.pt
+*.pkl
+*.h5
+*.bin
+*.safetensors
+*.onnx
+*.ckpt
+
+### 모델/가중치 폴더 ###
+agent/models/
+agent/models_v4/
+agent/AItr_manager/models/
+agent/AItr_manager/weights/
+**/weights/
+**/checkpoints/
+
+### 🔐 환경 설정 / 비밀 ###
+.env
+.env.*
+application-local.properties
+application-prod.properties
+application-secret.properties
+
+### 로그 / 임시 파일 ###
+*.log
+/logs/
+_fresh_*.log
+_verify_*.log
+_pip_install.log
+_run_*.log
+_smoke_*.py
+_verify_predict.py
+agent/AItr_manager/_run_result.json
+agent/AItr_manager/_run_timed.py
+agent/AItr_manager/_smoke_test.py
+
+### Hyperopt / 학습 결과 (선택적) ###
+agent/hyperopt_results/*.csv
+
+### OS 파일 ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### 백업 / 임시 ###
+*.bak
+*.tmp
+*.swp
+*~
+
+# V5 weights 폴더
+agent/models_v5/
+
+# 루트 venv (test_env 여기 있을 수 있음)
+test_env/
+/test_env/
+
+# Claude Code 설정
+.claude/
+CLAUDE.md
+
+# 조원분 인계 패키지 폴더 (압축본만 보관)
+quantmaster_lstm_v5/
+
+# 옛 UI 백업
+src/main/resources/static/index_backup_*.html
+
+# 임시 검증/분석 스크립트 (개인 학습 흔적)
+agent/_*.out
+agent/_*.py
+agent/verify_seed.py
+agent/verify_v5_repro.py
+agent/integrate_v5_validation.py
+agent/batch_compare.py
+agent/compare_models.py
+agent/AItr_manager/one/
