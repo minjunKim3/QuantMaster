@@ -1,0 +1,11 @@
+{
+  "version": "20260520",
+  "description": "QuantMaster V5 학습 완료 종목 매핑 — 모델 성능 검증 도구 자동완성용",
+  "stocks": [
+    {"code": "KS11",   "name": "코스피 지수",  "market": "INDEX"},
+    {"code": "KQ11",   "name": "코스닥 지수",  "market": "INDEX"},
+    {"code": "005930", "name": "삼성전자",     "market": "KOSPI"},
+    {"code": "000660", "name": "SK하이닉스",   "market": "KOSPI"},
+    {"code": "035720", "name": "카카오",       "market": "KOSPI"}
+  ]
+}

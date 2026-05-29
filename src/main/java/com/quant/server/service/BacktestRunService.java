@@ -21,10 +21,67 @@ public class BacktestRunService {
     @Value("${backtest.script-path:C:/QuantMaster/agent/backtest_runner.py}")
     private String scriptPath;
 
-    public String runLSTMPrediction(String code, int days) {
+    // NEW 20260520: 모델 성능 검증 (날짜 범위 입력 → 방향정확도 + naive baseline + train/val/test 구간)
+    public String runVerify(String code, String modelVersion, String startDate, String endDate) {
         String paramsJson = String.format(
-                "{\"code\":\"%s\",\"days\":%d}",
-                code, days);
+                "{\"code\":\"%s\",\"modelVersion\":\"%s\",\"startDate\":\"%s\",\"endDate\":\"%s\"}",
+                code, modelVersion, startDate, endDate);
+
+        log.info("[모델 검증] 파라미터: {}", paramsJson);
+
+        try {
+            Path tempFile = Files.createTempFile("verify_", ".json");
+            Files.writeString(tempFile, paramsJson);
+
+            String verifyScript = scriptPath.replace("backtest_runner.py", "lstm_verify.py");
+
+            ProcessBuilder pb = new ProcessBuilder(pythonPath, verifyScript, tempFile.toString());
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            String line;
+            String lastLine = "";
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("{")) {
+                    lastLine = line;
+                } else {
+                    log.info("[검증] {}", line);
+                }
+            }
+
+            int exitCode = process.waitFor();
+            Files.delete(tempFile);
+
+            if (exitCode == 0 && !lastLine.isEmpty()) {
+                log.info("[모델 검증] 완료!");
+                return lastLine;
+            } else {
+                log.error("[모델 검증] 실패. 종료코드: {}", exitCode);
+                return lastLine.isEmpty()
+                        ? "{\"error\":\"모델 검증 실패 (exit " + exitCode + ")\"}"
+                        : lastLine;
+            }
+        } catch (Exception e) {
+            log.error("[모델 검증] 에러: {}", e.getMessage());
+            return "{\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}";
+        }
+    }
+
+    public String runLSTMPrediction(String code, int days) {
+        // 이전 호출자 호환용 오버로드 (modelVersion=auto)
+        return runLSTMPrediction(code, days, "");
+    }
+
+    // NEW [Model Version Routing]: 사용자 선택 modelVersion을 파이썬으로 전달
+    // modelVersion 빈 문자열 → 파이썬이 자동 폴백 (V5>V4>V3>V2)
+    public String runLSTMPrediction(String code, int days, String modelVersion) {
+        String safeModelVersion = modelVersion == null ? "" : modelVersion.trim();
+        String paramsJson = String.format(
+                "{\"code\":\"%s\",\"days\":%d,\"modelVersion\":\"%s\"}",
+                code, days, safeModelVersion);
 
         log.info("[LSTM 예측] 파라미터: {}", paramsJson);
 
@@ -150,47 +207,6 @@ public class BacktestRunService {
         } catch (Exception e) {
             log.error("[모의투자] 에러: {}", e.getMessage());
             return "{\"error\":\"" + e.getMessage() + "\"}:";
-        }
-    }
-
-    public String runAgentAnalysis(String query, int days) {
-        String paramsJson = String.format(
-                "{\"query\":\"%s\",\"days\":%d}",
-                query, days);
-
-        log.info("[AI Agent] 분석 요청: {}", query);
-
-        try {
-            Path tempFile = Files.createTempFile("agent_", ".json");
-            Files.writeString(tempFile, paramsJson);
-
-            String agentScript = scriptPath.replace("backtest_runner.py", "agent_analysis.py");
-
-            ProcessBuilder pb = new ProcessBuilder(pythonPath, agentScript, tempFile.toString());
-            pb.redirectErrorStream(true);
-
-            Process process = pb.start();
-
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), "UTF-8"));
-            String line;
-            String lastLine = "";
-            while ((line = reader.readLine()) != null) {
-                lastLine = line;
-            }
-
-            int exitCode = process.waitFor();
-            Files.delete(tempFile);
-
-            if (exitCode == 0) {
-                log.info("[AI Agent] 분석 완료!");
-                return lastLine;
-            } else {
-                return "{\"error\":\"AI Agent 분석 실패\"}";
-            }
-        } catch (Exception e) {
-            log.error("[AI Agent] 에러: {}", e.getMessage());
-            return "{\"error\":\"" + e.getMessage() + "\"}";
         }
     }
 

@@ -89,21 +89,28 @@ public class BacktestController {
     public ResponseEntity<ApiResponse<String>> predict(@RequestBody Map<String, Object> params) {
         String code = (String) params.getOrDefault("code", "KS11");
         int days = ((Number) params.getOrDefault("days", 100)).intValue();
+        // NEW [Model Version Routing]: UI에서 선택한 modelVersion을 lstm_service.py까지 전달
+        // 미지정/Auto/빈문자열이면 파이썬이 기존 자동 폴백 (V5>V4>V3>V2) 사용
+        String modelVersion = (String) params.getOrDefault("modelVersion", "");
 
-        log.info("[LSTM 예측] {} | 최근 {}일", code, days);
+        log.info("[LSTM 예측] {} | 최근 {}일 | 요청모델: {}", code, days,
+                modelVersion.isBlank() ? "auto" : modelVersion);
 
-        String result = backtestRunService.runLSTMPrediction(code, days);
+        String result = backtestRunService.runLSTMPrediction(code, days, modelVersion);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
-    @PostMapping("/agent")
-    public ResponseEntity<ApiResponse<String>> agentAnalysis(@RequestBody Map<String, Object> params) {
-        String query = (String) params.getOrDefault("query", "");
-        int days = ((Number) params.getOrDefault("days", 7)).intValue();
+    // NEW 20260520: 모델 성능 검증 도구 — 종목/모델/기간 받아 방향정확도+naive baseline 산출
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verify(@RequestBody Map<String, Object> params) {
+        String code = (String) params.getOrDefault("code", "KS11");
+        String modelVersion = (String) params.getOrDefault("modelVersion", "V5");
+        String startDate = (String) params.getOrDefault("startDate", "");
+        String endDate = (String) params.getOrDefault("endDate", "");
 
-        log.info("[AI Agent] {} | {}일", query, days);
+        log.info("[모델 검증] {} {} | {} ~ {}", code, modelVersion, startDate, endDate);
 
-        String result = backtestRunService.runAgentAnalysis(query, days);
+        String result = backtestRunService.runVerify(code, modelVersion, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 

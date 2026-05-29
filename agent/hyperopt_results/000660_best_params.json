@@ -1,0 +1,35 @@
+{
+  "code": "000660",
+  "sampler_seed": 45,
+  "n_trials": 100,
+  "best_trial": 93,
+  "best_score": 99.984,
+  "best_params": {
+    "conf_exit": 0.48859933765627345,
+    "conf_mult": 208.12559276699687,
+    "bb_exit_high": 0.6317590198283961,
+    "bb_exit_low": -0.8327523995669364,
+    "rsi_exit_high": 55
+  },
+  "bb_our_units": {
+    "bb_exit_high_our": 0.8159,
+    "bb_exit_low_our": 0.0836
+  },
+  "val": {
+    "avg_da": 100.0,
+    "n_exits": 7,
+    "min_trades_required": 11,
+    "penalty": 16
+  },
+  "test": {
+    "da_exit": 44.68,
+    "n_exits": 47,
+    "min_trades_required": 11
+  },
+  "systematic_bias": -0.00052,
+  "timing_sec": {
+    "prep": 108.6,
+    "optuna": 0.4,
+    "total": 109.0
+  }
+}

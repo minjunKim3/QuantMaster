@@ -1,0 +1,35 @@
+{
+  "code": "005930",
+  "sampler_seed": 44,
+  "n_trials": 100,
+  "best_trial": 49,
+  "best_score": 66.6027,
+  "best_params": {
+    "conf_exit": 0.6615010551821651,
+    "conf_mult": 1427.7716723884678,
+    "bb_exit_high": 0.8049139161072623,
+    "bb_exit_low": -0.5560986942334044,
+    "rsi_exit_high": 56
+  },
+  "bb_our_units": {
+    "bb_exit_high_our": 0.9025,
+    "bb_exit_low_our": 0.222
+  },
+  "val": {
+    "avg_da": 66.67,
+    "n_exits": 3,
+    "min_trades_required": 11,
+    "penalty": 64
+  },
+  "test": {
+    "da_exit": 41.38,
+    "n_exits": 29,
+    "min_trades_required": 11
+  },
+  "systematic_bias": 0.000414,
+  "timing_sec": {
+    "prep": 108.1,
+    "optuna": 0.4,
+    "total": 108.5
+  }
+}

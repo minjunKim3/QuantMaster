@@ -35,6 +35,13 @@
         .stat-item { background: #12121f; border-radius: 8px; padding: 15px; text-align: center; }
         .stat-item .value { font-size: 24px; font-weight: bold; color: #00d4ff; }
         .stat-item .label { font-size: 12px; color: #888; margin-top: 5px; }
+        /* NEW UI 20260522: 대시보드 재구성 — sublabel(작은 설명줄) + trend(추세 아이콘) */
+        .stat-item .sublabel { font-size: 10px; color: #666; margin-top: 3px; line-height: 1.3; }
+        .stat-item .trend { font-size: 11px; margin-left: 4px; }
+        .stat-item.improved .value { color: #53cf60; }
+        .stat-item.regressed .value { color: #cf5353; }
+        .verify-history-table .trophy { color: #ffd700; font-size: 14px; margin-right: 4px; }
+        .verify-history-table tr.top-row td { background: rgba(255,215,0,0.05); }
         .loading { text-align: center; color: #666; padding: 20px; }
         .error { text-align: center; color: #cf5353; padding: 20px; }
         .form-container { display: none; background: #12121f; border-radius: 8px; padding: 20px; margin-top: 15px; }
@@ -52,6 +59,93 @@
         .input-row label { color: #888; font-size: 0.85rem; display: block; margin-bottom: 4px; }
         .input-row input { width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px; }
         .run-btn { padding: 10px 30px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        /* NEW UI 20260520: AI 예측 / AI 추천 탭 전용 스타일 */
+        .ai-header { padding: 20px 40px 10px; }
+        .ai-header h1 { color: #00d4ff; font-size: 22px; margin-bottom: 6px; }
+        .ai-header .subtitle { color: #aaa; font-size: 14px; margin-bottom: 4px; }
+        .ai-header .disclaimer { color: #ffa502; font-size: 12px; }
+        .result-headline { display: flex; align-items: center; gap: 20px; padding: 20px; background: #12121f; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .direction-label { font-size: 26px; font-weight: bold; padding: 6px 16px; border-radius: 8px; }
+        .direction-up { color: #53cf60; background: rgba(83,207,96,0.1); }
+        .direction-down { color: #cf5353; background: rgba(207,83,83,0.1); }
+        .direction-hold { color: #ffa502; background: rgba(255,165,2,0.1); }
+        .confidence-block { display: flex; flex-direction: column; gap: 4px; }
+        .confidence-stars { font-size: 18px; letter-spacing: 2px; color: #00d4ff; }
+        .confidence-text { font-size: 13px; color: #aaa; }
+        .result-comment { background: #12121f; border-left: 3px solid #00d4ff; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; }
+        .result-comment strong { color: #00d4ff; display: block; margin-bottom: 6px; font-size: 13px; }
+        .result-comment p { color: #ddd; font-size: 14px; line-height: 1.5; }
+        details.pred-details { background: #12121f; border-radius: 6px; padding: 10px 16px; }
+        details.pred-details summary { cursor: pointer; color: #00d4ff; font-size: 13px; }
+        details.pred-details ul { margin-top: 10px; padding-left: 20px; }
+        details.pred-details li { color: #aaa; font-size: 13px; line-height: 1.7; }
+        .radio-group { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+        .radio-group > label:first-child { color: #888; font-size: 12px; margin-right: 6px; }
+        .radio-group label { color: #ddd; font-size: 13px; cursor: pointer; }
+        .radio-group input[type=radio] { margin-right: 4px; accent-color: #00d4ff; }
+        .rec-card { background: #12121f; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+        .rec-card header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+        .rec-card .rank { font-size: 20px; }
+        .rec-card .ticker { font-size: 15px; color: #00d4ff; font-weight: bold; flex: 1; min-width: 200px; }
+        .rec-card .score { font-size: 13px; color: #ffa502; }
+        .rec-card .reason { color: #ccc; font-size: 13px; line-height: 1.5; }
+        .rec-card.rank-1 { border-left: 3px solid #00d4ff; }
+        .rec-card.rank-2 { border-left: 3px solid #53cf60; }
+        .rec-card.rank-3 { border-left: 3px solid #ffa502; }
+        .agent-summary { background: #12121f; border-left: 3px solid #a55eea; padding: 12px 16px; border-radius: 6px; margin-top: 15px; }
+        .agent-summary strong { color: #a55eea; display: block; margin-bottom: 6px; font-size: 13px; }
+        .agent-summary p { color: #ddd; font-size: 14px; line-height: 1.5; }
+        .loading-state { text-align: center; padding: 30px; color: #888; font-size: 14px; }
+        .loading-state .spinner { font-size: 28px; display: inline-block; animation: spin 1.5s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* STEP4 20260527: AI 추천 로딩 진행률 + 예시칩 + 심층 리포트 */
+        .loading-sub { font-size: 12px; color: #888; margin-top: 6px; }
+        .progress-track { width: 100%; max-width: 420px; height: 10px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 6px; margin: 14px auto 6px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a55eea, #00d4ff); border-radius: 6px; transition: width 0.6s ease; }
+        .progress-steps { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .progress-steps .pstep { font-size: 11px; color: #666; padding: 3px 10px; border-radius: 12px; background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .progress-steps .pstep.active { color: #00d4ff; border-color: #00d4ff; font-weight: bold; }
+        .progress-steps .pstep.done { color: #53cf60; border-color: #53cf60; }
+        .example-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .report-content { color: #ccc; font-size: 13px; line-height: 1.7; margin-top: 10px; max-height: 360px; overflow-y: auto; }
+        .report-content h3 { color: #00d4ff; font-size: 14px; margin: 12px 0 4px; }
+        .report-content strong { color: #fff; }
+        .ai-tab-grid { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 0 40px 20px; }
+        @media (max-width: 700px) {
+            .ai-header { padding: 16px 20px 8px; }
+            .ai-tab-grid { padding: 0 20px 20px; }
+            .direction-label { font-size: 20px; }
+        }
+        /* NEW UI 20260520: 모델 성능 검증 도구 카드 */
+        .verify-section { margin-top: 20px; border-top: 2px dashed #2a2a4a; padding-top: 20px; }
+        .verify-section .academic-badge { display: inline-block; background: #2a2a4a; color: #aaa; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+        .autocomplete-wrap { position: relative; }
+        .autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; }
+        .autocomplete-dropdown.show { display: block; }
+        .autocomplete-item { padding: 8px 12px; cursor: pointer; color: #ddd; font-size: 13px; border-bottom: 1px solid #2a2a4a; }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover, .autocomplete-item.active { background: #0f3460; color: #00d4ff; }
+        .autocomplete-item .ac-code { color: #00d4ff; font-weight: bold; margin-right: 8px; }
+        .autocomplete-item .ac-name { color: #ccc; }
+        .autocomplete-item .ac-market { color: #888; font-size: 11px; float: right; }
+        .verify-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+        .verify-stat { background: #12121f; padding: 12px; border-radius: 8px; text-align: center; }
+        .verify-stat .vs-value { font-size: 22px; font-weight: bold; color: #00d4ff; }
+        .verify-stat .vs-label { font-size: 11px; color: #888; margin-top: 4px; }
+        .verify-stat.improved .vs-value { color: #53cf60; }
+        .verify-stat.regressed .vs-value { color: #cf5353; }
+        .period-label { display: inline-block; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: bold; margin: 10px 0; }
+        .period-label.train { background: rgba(255,165,2,0.15); color: #ffa502; border: 1px solid #ffa502; }
+        /* FIX 20260523: 학습/평가 모두 80/20 통일 → .val 라벨/세그먼트 제거 */
+        .period-label.test { background: rgba(83,207,96,0.15); color: #53cf60; border: 1px solid #53cf60; }
+        .period-label.mixed { background: rgba(207,83,83,0.15); color: #cf5353; border: 1px solid #cf5353; }
+        .split-bar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin-top: 8px; font-size: 11px; }
+        .split-bar > div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+        .split-bar .seg-train { background: #ffa502; flex: 80; }
+        .split-bar .seg-test { background: #53cf60; flex: 20; }
+        .split-dates { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px; }
+        .baseline-compare { background: #12121f; border-radius: 8px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #ddd; }
+        .baseline-compare .bc-improve { font-weight: bold; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -62,13 +156,47 @@
 </div>
 <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('home', this)">🏠 대시보드</button>
+    <!-- BACKTEST_TAB_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
     <button class="tab-btn" onclick="switchTab('backtest', this)">🔬 백테스트</button>
+    -->
+    <!-- SIMULATION_TAB_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
     <button class="tab-btn" onclick="switchTab('simulation', this)">💰 모의투자</button>
-    <button class="tab-btn" onclick="switchTab('ai', this)">🤖 AI 분석</button>
+    -->
+    <!-- NEW UI 20260520: AI 예측 + AI 추천 탭 버튼 신규 추가 -->
+    <button class="tab-btn" onclick="switchTab('predict', this)">🔮 AI 예측</button>
+    <button class="tab-btn" onclick="switchTab('agent', this)">🤖 AI 추천</button>
 </div>
 
 <!-- 대시보드 탭 -->
 <div class="tab-content active" id="tab-home">
+    <!-- NEW UI 20260522: 시스템 요약 4개 카드 — 검증 누적 통계 기반 -->
+    <div class="card full-width">
+        <h2>📊 시스템 요약</h2>
+        <div class="stats-grid">
+            <div class="stat-item" id="card-avgDirAcc">
+                <div class="value" id="avgDirAcc">-</div>
+                <div class="label">① 평균 방향정확도</div>
+                <div class="sublabel" id="avgDirAccSub">검증 결과 누적 기준</div>
+            </div>
+            <div class="stat-item" id="card-improvement">
+                <div class="value" id="baselineImprove">-</div>
+                <div class="label">② baseline 개선폭</div>
+                <div class="sublabel">vs naive baseline</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="verifiedTickers">-</div>
+                <div class="label">③ 검증 종목 수</div>
+                <div class="sublabel" id="verifiedTickersSub">아직 검증된 종목 없음</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="verifyPeriodSummary">-</div>
+                <div class="label">④ 검증 기간</div>
+                <div class="sublabel" id="verifyPeriodSub">-</div>
+            </div>
+        </div>
+    </div>
+    <!-- LEGACY_SYSTEM_SUMMARY_DISABLED_20260522: 자동매매 톤(전략/활성/수익률) 카드 제거 — 원본은 git 히스토리에 남음 -->
+    <!--
     <div class="card full-width">
         <h2>시스템 요약</h2>
         <div class="stats-grid">
@@ -78,6 +206,10 @@
             <div class="stat-item"><div class="value" id="bestProfit">-</div><div class="label">최고 수익률</div></div>
         </div>
     </div>
+    -->
+
+    <!-- STRATEGY_CARD_DISABLED_20260522: 자동매매 톤 제거 — 전략 설정 관리 카드 주석 처리(삭제 금지) -->
+    <!--
     <div class="card">
         <h2>전략 설정 관리</h2>
         <button class="btn-add" onclick="toggleForm()">+ 새 전략</button>
@@ -90,11 +222,26 @@
         </div>
         <div id="strategyTable"><div class="loading">로딩 중...</div></div>
     </div>
+    -->
+
+    <!-- LEGACY_BACKTEST_CARD_DISABLED_20260522: "백테스트 결과(수익률 TOP)" 카드 주석 처리. 자리에 "모델 성능 검증 누적" 표 신설. -->
+    <!--
     <div class="card">
         <h2>백테스트 결과 (수익률 TOP)</h2>
         <button class="btn btn-delete" onclick="clearAllBacktests()" style="float:right;margin-top:-30px;">🗑️ 전체 삭제</button>
         <div id="backtestTable"><div class="loading">로딩 중...</div></div>
     </div>
+    -->
+
+    <!-- NEW UI 20260522: 모델 성능 검증 누적 표 — 데이터 소스: localStorage (검증 도구 실행마다 누적) -->
+    <div class="card full-width">
+        <h2>🏆 모델 성능 검증 누적</h2>
+        <button class="btn btn-delete" onclick="clearVerifyHistory()" style="float:right;margin-top:-30px;">🗑️ 누적 결과 초기화</button>
+        <div id="verifyHistoryTable"><div class="loading">검증 결과가 아직 없습니다. 🔮 AI 예측 탭의 [모델 성능 검증 도구]로 첫 검증을 실행해 보세요.</div></div>
+    </div>
+
+    <!-- LEGACY_CHART_CARD_DISABLED_20260522: 종가 차트는 🔮 AI 예측 탭의 종목 입력 아래로 이동 -->
+    <!--
     <div class="card full-width">
         <h2>📈 종가 차트</h2>
         <div style="margin-bottom:10px;display:flex;gap:10px;align-items:center;">
@@ -104,9 +251,10 @@
         <canvas id="stockChart" height="100"></canvas>
     </div>
     <div class="card full-width"><h2>📊 최근 주식 데이터</h2><div id="stockTable"><div class="loading">로딩 중...</div></div></div>
+    -->
 </div>
 
-<!-- 백테스트 탭 -->
+<!-- BACKTEST_TAB_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
 <div class="tab-content" id="tab-backtest">
     <div class="card full-width">
         <h2>🔬 백테스트 실행</h2>
@@ -142,8 +290,9 @@
         </div>
     </div>
 </div>
+-->
 
-<!-- 모의투자 탭 -->
+<!-- SIMULATION_TAB_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
 <div class="tab-content" id="tab-simulation">
     <div class="card full-width">
         <h2>💰 모의투자 시뮬레이터</h2>
@@ -180,50 +329,194 @@
         </div>
     </div>
 </div>
+-->
 
-<!-- AI 분석 탭 -->
-<div class="tab-content" id="tab-ai">
-    <div class="card">
-        <h2>🤖 AI 주가 예측 (LSTM)</h2>
-        <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.85rem;">종목 코드</label><input type="text" id="predCode" value="KS11" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
-        <div style="margin-bottom:15px;"><label style="color:#888;font-size:0.85rem;">예측 기간 (일)</label><input type="number" id="predDays" value="100" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
-        <button class="run-btn" style="background:#ff6b6b;color:#000;" id="predRunBtn" onclick="runPrediction()">🤖 AI 예측 실행</button>
-        <div id="predResult" style="display:none;margin-top:15px;">
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
-                <div class="stat-item"><div class="value" id="predMAPE">0%</div><div class="label">오차율 (MAPE)</div></div>
-                <div class="stat-item"><div class="value" id="predDirection">0%</div><div class="label">방향 정확도</div></div>
-                <div class="stat-item"><div class="value" id="predActual">0</div><div class="label">실제 종가</div></div>
-                <div class="stat-item"><div class="value" id="predPredicted">0</div><div class="label">예측 종가</div></div>
-            </div>
-            <div id="predSteps" style="display:none;margin-bottom:15px;">
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                    <div class="stat-item" style="border-left:3px solid #00d4ff;"><div class="value" id="predT1" style="color:#00d4ff;">-</div><div class="label">📅 내일 (t+1)</div></div>
-                    <div class="stat-item" style="border-left:3px solid #53cf60;"><div class="value" id="predT2" style="color:#53cf60;">-</div><div class="label">📅 모레 (t+2)</div></div>
-                    <div class="stat-item" style="border-left:3px solid #ffa502;"><div class="value" id="predT3" style="color:#ffa502;">-</div><div class="label">📅 글피 (t+3)</div></div>
+<!-- NEW UI 20260520: AI 예측 탭 (탭 A) -->
+<div class="tab-content" id="tab-predict">
+    <section class="full-width" style="grid-column: 1 / -1;">
+        <header class="ai-header">
+            <h1>🔮 AI 주가 방향 예측</h1>
+            <p class="subtitle">AI 모델이 가까운 미래의 주가 방향을 추정합니다.</p>
+            <p class="disclaimer">⚠️ 이 도구는 의사결정 보조용이며, 실제 거래는 사용자 판단에 의함</p>
+        </header>
+        <div class="ai-tab-grid">
+            <div class="card">
+                <h2>🛠️ 예측 설정</h2>
+                <div class="input-row">
+                    <div>
+                        <label>모델 선택</label>
+                        <select id="modelVersion">
+                            <option value="V5" selected>V5 (최신 · 추천)</option>
+                            <option value="V4">V4 (Foundation 앙상블)</option>
+                            <option value="V3">V3 (24개 특성)</option>
+                            <option value="V2">V2 (기본형)</option>
+                        </select>
+                    </div>
+                    <!-- FIX 20260523: AI 예측 탭에도 자동완성 추가 (검증 도구와 동일 UX) -->
+                    <div class="autocomplete-wrap">
+                        <label>종목 코드</label>
+                        <input type="text" id="tickerInput" value="KS11" placeholder="예: KS11, 005930" autocomplete="off">
+                        <div id="tickerAutocomplete" class="autocomplete-dropdown"></div>
+                    </div>
+                    <div>
+                        <label>분석 기간 (일)</label>
+                        <input type="number" id="predictDays" value="100" min="30" max="365">
+                    </div>
                 </div>
-                <div id="predModelBadge" style="text-align:center;margin-top:8px;"></div>
+                <button id="runPredictBtn" class="run-btn" style="background:#00d4ff;color:#000;margin-top:8px;" onclick="runPredict()">🚀 AI에게 물어보기</button>
+
+                <!-- NEW UI 20260522: 대시보드에서 옮겨온 종가 차트 — 종목 입력 변경 시 자동 표시 -->
+                <div style="margin-top:20px;border-top:1px dashed #2a2a4a;padding-top:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <strong style="color:#00d4ff;font-size:14px;">📈 종가 차트 — <span id="chartTickerLabel">KS11</span></strong>
+                        <button onclick="loadStockData()" class="btn btn-activate" style="padding:6px 14px;">차트 새로고침</button>
+                    </div>
+                    <canvas id="stockChart" height="100"></canvas>
+                    <div id="stockTable" style="margin-top:12px;"></div>
+                </div>
             </div>
-            <canvas id="predictionChart"></canvas>
-        </div>
-    </div>
-    <div class="card">
-        <h2>🤖 AI Agent 주식 분석</h2>
-        <div style="margin-bottom:10px;"><label style="color:#888;font-size:0.85rem;">분석 요청 (AI가 자동 분석)</label><input type="text" id="agentQuery" value="일주일간 저평가된 변동성 큰 주식 추천해줘" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;" placeholder="예: 안정적인 우량주, 반등 가능한 저평가주, 변동성 큰 단타 종목"></div>
-        <div style="margin-bottom:15px;"><label style="color:#888;font-size:0.85rem;">분석 기간 (일)</label><input type="number" id="agentDays" value="7" max="100" style="width:100%;padding:8px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:5px;"></div>
-        <button class="run-btn" style="background:#a55eea;color:#fff;" id="agentRunBtn" onclick="runAgentAnalysis()">🤖 AI 분석 실행</button>
-        <div id="agentResult" style="display:none;margin-top:15px;">
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;">
-                <div class="stat-item"><div class="value" id="agentDate">-</div><div class="label">분석일</div></div>
-                <div class="stat-item"><div class="value" id="agentScanned">0</div><div class="label">스캔 종목 수</div></div>
-                <div class="stat-item"><div class="value" id="agentTop">-</div><div class="label">1위 종목</div></div>
-                <div class="stat-item"><div class="value" id="agentTopScore">0</div><div class="label">최고 점수</div></div>
+            <div class="card" id="predictResultCard" style="display:none;">
+                <h2>📊 예측 결과</h2>
+                <!-- NEW [Model Version Routing]: 선택 모델 ≠ 실제 사용 모델일 때 노란 경고 -->
+                <div id="predictModelWarning"
+                     style="display:none;background:#ffd54f;color:#000;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-weight:600;">
+                </div>
+                <div class="result-headline">
+                    <span id="predictDirection" class="direction-label direction-hold">🤔 방향 불확실</span>
+                    <div class="confidence-block">
+                        <span id="predictStars" class="confidence-stars">○○○○○</span>
+                        <span id="predictConfidence" class="confidence-text">신뢰도 -</span>
+                    </div>
+                </div>
+                <div class="result-comment">
+                    <strong>💬 AI의 한마디</strong>
+                    <p id="predictSummary">예측을 실행해 주세요.</p>
+                </div>
+                <details class="pred-details">
+                    <summary>📊 예측 상세 보기</summary>
+                    <ul>
+                        <li>T+1 예상 변동률: <span id="predictDeltaT1">-</span></li>
+                        <li>최근 실제 종가: <span id="predictActual">-</span></li>
+                        <li>예측 종가 (T+1): <span id="predictedClose">-</span></li>
+                        <li>방향 정확도(과거 검증): <span id="predictDirAcc">-</span></li>
+                        <li>MAPE(오차율): <span id="predictMape">-</span></li>
+                        <li>적용 모델 버전: <span id="predictModelBadge">-</span></li>
+                    </ul>
+                </details>
             </div>
-            <canvas id="agentScoreChart"></canvas>
-            <canvas id="agentRadarChart" style="margin-top:20px;"></canvas>
-            <div id="agentWeights" style="margin-top:15px;"></div>
-            <div id="agentTable" style="margin-top:20px;"></div>
+
+            <!-- NEW UI 20260520: 모델 성능 검증 도구 -->
+            <div class="card verify-section">
+                <h2>🎯 모델 성능 검증 도구 <span class="academic-badge">학술적 참고용</span></h2>
+                <p style="color:#aaa;font-size:13px;margin-bottom:14px;">선택한 모델·종목·기간으로 방향정확도를 직접 확인하세요. 학습 구간이면 정확도가 부풀려질 수 있으니 검증/테스트 구간 사용을 권장합니다.</p>
+                <div class="input-row">
+                    <div>
+                        <label>모델 선택</label>
+                        <select id="verifyModelVersion">
+                            <option value="V5" selected>V5 (최신)</option>
+                            <option value="V4">V4</option>
+                            <option value="V3">V3</option>
+                            <option value="V2">V2</option>
+                        </select>
+                    </div>
+                    <div class="autocomplete-wrap">
+                        <label>종목 (학습 완료 5종목)</label>
+                        <input type="text" id="verifyTicker" value="KS11" autocomplete="off" placeholder="KS11, 005930 등">
+                        <div id="verifyAutocomplete" class="autocomplete-dropdown"></div>
+                    </div>
+                    <div>
+                        <label>시작일</label>
+                        <input type="date" id="verifyStart" value="2024-01-01">
+                    </div>
+                    <div>
+                        <label>종료일</label>
+                        <input type="date" id="verifyEnd" value="2024-12-31">
+                    </div>
+                </div>
+                <button id="runVerifyBtn" class="run-btn" style="background:#ffa502;color:#000;margin-top:8px;" onclick="runVerify()">🎯 검증 실행</button>
+                <div id="verifyResult" style="display:none;margin-top:16px;">
+                    <div id="verifyPeriodLabel" class="period-label train">⚠️ 학습 데이터 구간</div>
+                    <div class="verify-result-grid">
+                        <div class="verify-stat"><div class="vs-value" id="vsDirAcc">-</div><div class="vs-label">방향 정확도</div></div>
+                        <div class="verify-stat"><div class="vs-value" id="vsAvgConf">-</div><div class="vs-label">평균 신뢰도</div></div>
+                        <div class="verify-stat"><div class="vs-value" id="vsNaive">-</div><div class="vs-label">Naive Baseline</div></div>
+                        <div class="verify-stat" id="vsImprovementCard"><div class="vs-value" id="vsImprove">-</div><div class="vs-label">개선폭 (vs naive)</div></div>
+                        <div class="verify-stat"><div class="vs-value" id="vsSamples">-</div><div class="vs-label">평가 샘플</div></div>
+                    </div>
+                    <div class="baseline-compare" id="vsBaselineCompare">-</div>
+                    <details class="pred-details" style="margin-top:12px;">
+                        <summary>📅 학습/검증/테스트 구간 분포</summary>
+                        <!-- FIX 20260523: 학습/평가 split 모두 80/20 통일. 막대도 2칸으로 단순화. -->
+                        <div class="split-bar">
+                            <div class="seg-train">Train 80%</div>
+                            <div class="seg-test">Test 20%</div>
+                        </div>
+                        <div class="split-dates">
+                            <span id="vsTrainRange">-</span>
+                            <span id="vsValRange" style="color:#888;font-size:12px;">Val: 없음 (학습/평가 모두 80/20 train/test만 사용)</span>
+                            <span id="vsTestRange">-</span>
+                        </div>
+                        <p style="color:#888;font-size:11px;margin-top:6px;">* 실제 V5 모델은 학습/평가 모두 windowed 80/20 split만 사용 (별도 validation set 없음).</p>
+                    </details>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
+</div>
+
+<!-- NEW UI 20260520: AI 추천 탭 (탭 B) -->
+<div class="tab-content" id="tab-agent">
+    <section class="full-width" style="grid-column: 1 / -1;">
+        <header class="ai-header">
+            <h1>🤖 AI Agent 종목 추천</h1>
+            <p class="subtitle">AI가 시장을 분석해 주목할 만한 종목을 골라줍니다.</p>
+            <p class="disclaimer">⚠️ 이 도구는 의사결정 보조용이며, 실제 거래는 사용자 판단에 의함</p>
+        </header>
+        <div class="ai-tab-grid">
+            <div class="card">
+                <h2>🎚️ 추천 설정</h2>
+                <!-- STEP4 20260527: 자연어 입력으로 변경 (manager /api/recommend/run 연동) -->
+                <label style="color:#888;font-size:0.85rem;display:block;margin-bottom:6px;">무엇을 찾고 있나요? 편하게 말로 적어보세요.</label>
+                <input type="text" id="agentQuery" placeholder="예: 안정적인 대형주 3개 추천해줘"
+                       style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;margin-bottom:12px;">
+                <div class="example-chips">
+                    <span class="toggle-btn" onclick="fillAgentQuery('안정적인 대형주 3개 추천해줘')">안정적인 대형주 3개</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('성장성 높은 종목 3개 추천해줘')">성장주 3개</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('배당 잘 주는 우량주 추천해줘')">배당 우량주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('최근 거래량 급증한 종목 추천해줘')">거래량 급증주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('저평가된 반등 기대주 추천해줘')">저평가 반등주</span>
+                </div>
+                <button id="runAgentBtn" class="run-btn" style="background:#a55eea;color:#fff;margin-top:4px;" onclick="runAgent()">✨ AI Agent에게 추천받기</button>
+                <p class="disclaimer" style="color:#ffa502;font-size:12px;margin-top:10px;">⚠️ AI가 추천한 종목은 참고용이며, 실제 투자는 사용자 판단에 따릅니다.</p>
+            </div>
+            <div class="card" id="agentResultCard" style="display:none;">
+                <h2>📋 추천 결과</h2>
+                <!-- STEP4 20260527: 3단계 진행률 로딩 인디케이터 -->
+                <div id="agentLoading" class="loading-state" style="display:none;">
+                    <span class="spinner">🤖</span>
+                    <p id="agentLoadingMsg">1단계 · 사용자 입력 분석 중…</p>
+                    <div class="progress-track"><div id="agentProgressBar" class="progress-fill"></div></div>
+                    <p id="agentLoadingSub" class="loading-sub">300개 종목을 실시간으로 분석 중입니다. 최대 6분까지 걸릴 수 있어요.</p>
+                    <p id="agentElapsed" class="loading-sub">경과 0초</p>
+                    <div class="progress-steps">
+                        <span class="pstep" id="pstep1">① 입력 분석</span>
+                        <span class="pstep" id="pstep2">② 300종목 스캔</span>
+                        <span class="pstep" id="pstep3">③ 리포트 생성</span>
+                    </div>
+                </div>
+                <div id="agentRecList"></div>
+                <!-- STEP4 20260527: AI 심층 리포트 전체 (토글) -->
+                <details id="agentReportBox" class="pred-details" style="display:none;margin-top:12px;">
+                    <summary>📄 AI 심층 리포트 전체 보기</summary>
+                    <div id="agentReportContent" class="report-content"></div>
+                </details>
+                <div id="agentSummaryBox" class="agent-summary" style="display:none;">
+                    <strong>💬 종합 의견</strong>
+                    <p id="agentSummaryText">-</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -237,7 +530,10 @@
     }
 
     window.onload = function() {
-        loadStrategies(); loadBacktests(); loadStockData();
+        // LEGACY_LOAD_DISABLED_20260522: 전략/백테스트 카드 주석화로 호출 제거. 대신 검증 누적 표시 함수 호출.
+        // loadStrategies(); loadBacktests();
+        loadVerifyHistory();          // NEW: localStorage 기반 검증 누적 표 + 시스템 요약 갱신
+        loadStockData();              // 종가 차트 (AI 예측 탭으로 이동했으나 함수는 그대로 사용)
         document.getElementById("serverStatus").textContent = "서버 연결됨 ✓";
         document.getElementById("serverStatus").style.color = "#53cf60";
     };
@@ -274,7 +570,14 @@
 
     let stockChartInstance = null;
 async function loadStockData() {
-    const code = document.getElementById("chartCode") ? document.getElementById("chartCode").value : "AAPL";
+    // NEW UI 20260522: chartCode 입력은 주석 처리되어 사라짐. tickerInput(예측 탭) 값을 우선 사용.
+    const tickerEl = document.getElementById("tickerInput");
+    const legacyEl = document.getElementById("chartCode");
+    const code = (tickerEl && tickerEl.value) ? tickerEl.value.trim()
+                 : (legacyEl && legacyEl.value) ? legacyEl.value.trim()
+                 : "KS11";
+    const labelEl = document.getElementById("chartTickerLabel");
+    if (labelEl) labelEl.textContent = code;
     try {
         const res = await fetch(`${API}/backtest/realtime/${code}?days=365`);
         const result = await res.json();
@@ -327,7 +630,15 @@ async function loadStockData() {
     async function activateStrategy(id) {
         await fetch(`${API}/strategy/${id}/activate`,{method:"PUT"});
         const r = await fetch(`${API}/strategy`); const d = (await r.json()).data; const a = d.find(s=>s.id===id);
-        if(a){ const sl=a.activeStrategies.split(',').map(s=>s.trim()); document.querySelectorAll('#strategyToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))}); document.getElementById('btThreshold').value=a.entryThreshold; document.querySelectorAll('#simToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))}); document.getElementById('simThreshold').value=a.entryThreshold; alert(`"${a.name}" 적용!\n전략: ${a.activeStrategies}\nThreshold: ${a.entryThreshold}`); }
+        if(a){
+            const sl=a.activeStrategies.split(',').map(s=>s.trim());
+            // BACKTEST/SIMULATION_TAB_DISABLED_20260520: 토글/입력 DOM이 주석 처리되어 존재하지 않을 수 있으므로 null 가드 적용
+            document.querySelectorAll('#strategyToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))});
+            const btT=document.getElementById('btThreshold'); if(btT) btT.value=a.entryThreshold;
+            document.querySelectorAll('#simToggles .toggle-btn').forEach(b=>{b.classList.toggle('active',sl.includes(b.dataset.strategy))});
+            const simT=document.getElementById('simThreshold'); if(simT) simT.value=a.entryThreshold;
+            alert(`"${a.name}" 적용!\n전략: ${a.activeStrategies}\nThreshold: ${a.entryThreshold}`);
+        }
         loadStrategies();
     }
     async function deleteStrategy(id){if(confirm("삭제하시겠습니까?")){await fetch(`${API}/strategy/${id}`,{method:"DELETE"});loadStrategies();}}
@@ -336,38 +647,734 @@ async function loadStockData() {
     function toggleForm(){document.getElementById("addForm").classList.toggle("show");}
     async function saveStrategy(){const n=document.getElementById("formName").value,s=document.getElementById("formStrategies").value;if(!n||!s){alert("이름과 전략을 입력하세요!");return;}await fetch(`${API}/strategy`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,activeStrategies:s,mainModel:document.getElementById("formModel").value,entryThreshold:parseInt(document.getElementById("formThreshold").value),parameters:"{}"})});document.getElementById("formName").value="";document.getElementById("formStrategies").value="";toggleForm();loadStrategies();}
 
+    /* BACKTEST_JS_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
     let tradeChartInstance=null;
     async function runBacktest(){const btn=document.getElementById("btRunBtn");btn.disabled=true;btn.textContent="⏳ 실행 중...";const strategies=[];document.querySelectorAll('#strategyToggles .toggle-btn.active').forEach(b=>strategies.push(b.dataset.strategy));if(!strategies.length){alert("전략을 선택하세요!");btn.disabled=false;btn.textContent="🚀 백테스트 실행";return;}try{const res=await fetch(`${API}/backtest/run`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("btCode").value,startDate:document.getElementById("btStart").value,endDate:document.getElementById("btEnd").value,strategies,threshold:parseInt(document.getElementById("btThreshold").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;document.getElementById("btResult").style.display="block";const p=data.totalProfitPct||0;const pe=document.getElementById("btProfit");pe.textContent=p.toFixed(1)+"%";pe.className=p>=0?"value profit-positive":"value profit-negative";document.getElementById("btWinRate").textContent=(data.winRate||0).toFixed(1)+"%";document.getElementById("btTrades").textContent=data.totalTrades||0;const me=document.getElementById("btMDD");me.textContent=(data.maxDrawdownPct||0).toFixed(1)+"%";me.className="value profit-negative";if(tradeChartInstance)tradeChartInstance.destroy();const trades=data.trades||[];if(trades.length){tradeChartInstance=new Chart(document.getElementById('tradeChart'),{type:'line',data:{labels:trades.map(t=>t.date),datasets:[{label:'주가',data:trades.map(t=>t.price),borderColor:'#00d4ff',borderWidth:2,pointRadius:0,tension:0.3,fill:false},{label:'매수',data:trades.map(t=>t.type==='BUY'?t.price:null),borderColor:'transparent',backgroundColor:'#53cf60',pointRadius:8,pointStyle:'triangle',showLine:false},{label:'매도',data:trades.map(t=>t.type==='SELL'?t.price:null),borderColor:'transparent',backgroundColor:'#cf5353',pointRadius:8,pointStyle:'triangle',pointRotation:180,showLine:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'매매 포인트 차트',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#666'},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#00d4ff'},grid:{color:'#1a1a2e'}}}}});}loadBacktests();}catch(e){alert("백테스트 실패: "+e.message);}btn.disabled=false;btn.textContent="🚀 백테스트 실행";}
+    */
 
+    /* SIMULATION_JS_DISABLED_20260520: 사유 = 모델 성능 검증 도구로 재포지셔닝
     let portfolioChartInstance=null;
     async function runSimulation(){const btn=document.getElementById("simRunBtn");btn.disabled=true;btn.textContent="⏳ 실행 중...";const strategies=[];document.querySelectorAll('#simToggles .toggle-btn.active').forEach(b=>strategies.push(b.dataset.strategy));const cash=parseInt(document.getElementById("simCash").value);if(!cash||cash<=0){alert("초기 자금은 1 이상이어야 합니다!");btn.disabled=false;btn.textContent="💰 모의투자 시작";return;}try{const res=await fetch(`${API}/backtest/simulation`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("simCode").value,startDate:document.getElementById("simStart").value,endDate:document.getElementById("simEnd").value,strategies,threshold:parseInt(document.getElementById("simThreshold").value),initialCash:parseInt(document.getElementById("simCash").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;document.getElementById("simResult").style.display="block";document.getElementById("simInitial").textContent="$"+(data.initialCash||0).toLocaleString();document.getElementById("simFinal").textContent="$"+(data.finalValue||0).toLocaleString();const ret=data.totalReturn||0;const re=document.getElementById("simReturn");re.textContent=ret.toFixed(1)+"%";re.className=ret>=0?"value profit-positive":"value profit-negative";document.getElementById("simTradeCount").textContent=Math.floor((data.trades||[]).length/2);if(portfolioChartInstance)portfolioChartInstance.destroy();const portfolio=data.portfolio||[];if(portfolio.length){const baseline=new Array(portfolio.length).fill(data.initialCash);portfolioChartInstance=new Chart(document.getElementById('portfolioChart'),{type:'line',data:{labels:portfolio.map((p,i)=>i%10===0?p.date.substring(5):''),datasets:[{label:'내 자산($)',data:portfolio.map(p=>p.value),borderColor:'#53cf60',backgroundColor:'rgba(83,207,96,0.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},{label:'초기자금',data:baseline,borderColor:'#666',borderDash:[5,5],pointRadius:0,borderWidth:1,fill:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'자산 변화 추이',color:'#53cf60',font:{size:14}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:12},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#53cf60',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1a1a2e'}}}}});}}catch(e){alert("모의투자 실패: "+e.message);}btn.disabled=false;btn.textContent="💰 모의투자 시작";}
+    */
 
-    let predictionChartInstance=null;
-    async function runPrediction(){
-        const btn=document.getElementById("predRunBtn");
-        btn.disabled=true; btn.textContent="⏳ 예측 중...";
-        try{
-            const res=await fetch(`${API}/backtest/predict`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:document.getElementById("predCode").value||"KS11",days:parseInt(document.getElementById("predDays").value)||100})});
-            const result=await res.json();
-            let data=typeof result.data==='string'?JSON.parse(result.data):result.data;
-            if(data.error){alert("예측 실패: "+data.error);btn.disabled=false;btn.textContent="🤖 AI 예측 실행";return;}
-            document.getElementById("predResult").style.display="block";
-            document.getElementById("predMAPE").textContent=(data.mape||0)+"%";
-            document.getElementById("predDirection").textContent=(data.directionAccuracy||0)+"%";
-            document.getElementById("predActual").textContent=(data.latestActual||0).toLocaleString();
-            document.getElementById("predPredicted").textContent=(data.latestPredicted||0).toLocaleString();
-            if(data.predictedT2 && data.predictedT3){document.getElementById("predSteps").style.display="block";document.getElementById("predT1").textContent=data.latestPredicted.toLocaleString();document.getElementById("predT2").textContent=data.predictedT2.toLocaleString();document.getElementById("predT3").textContent=data.predictedT3.toLocaleString();document.getElementById("predModelBadge").innerHTML='<span style="background:#1a4a2a;color:#53cf60;padding:4px 12px;border-radius:12px;font-size:11px;">V3 모델 · 24개 특성 · DWT 웨이블릿 · 3스텝 예측</span>';}else{document.getElementById("predSteps").style.display="none";}
-            if(predictionChartInstance)predictionChartInstance.destroy();
-            predictionChartInstance=new Chart(document.getElementById('predictionChart'),{type:'line',data:{labels:data.dates.map((d,i)=>i%5===0?d.substring(5):''),datasets:[{label:'실제 주가',data:data.actuals,borderColor:'#00d4ff',borderWidth:2,pointRadius:0,tension:0.3},{label:'LSTM 예측',data:data.predictions,borderColor:'#ff6b6b',borderWidth:2,borderDash:[5,5],pointRadius:0,tension:0.3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#888'}},title:{display:true,text:'LSTM AI 주가 예측',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:15},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#00d4ff',callback:v=>v.toLocaleString()},grid:{color:'#1a1a2e'}}}}});
-        }catch(e){alert("LSTM 예측 실패: "+e.message);}
-        btn.disabled=false;btn.textContent="🤖 AI 예측 실행";
+    // NEW UI 20260520: AI 예측 탭 (runPredict)
+    function buildConfidenceStars(pct) {
+        const filled = Math.max(0, Math.min(5, Math.round(pct / 20)));
+        return '●'.repeat(filled) + '○'.repeat(5 - filled);
     }
 
-    let agentScoreChartInstance=null,agentRadarChartInstance=null;
-    async function runAgentAnalysis(){const btn=document.getElementById("agentRunBtn");btn.disabled=true;btn.textContent="⏳ 분석 중...";try{const res=await fetch(`${API}/backtest/agent`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query: document.getElementById("agentQuery").value,days:parseInt(document.getElementById("agentDays").value)})});const result=await res.json();let data=typeof result.data==='string'?JSON.parse(result.data):result.data;if(data.error){alert("분석 실패: "+data.error);btn.disabled=false;btn.textContent="🤖 AI 분석 실행";return;}document.getElementById("agentResult").style.display="block";document.getElementById("agentDate").textContent=data.analysisDate;document.getElementById("agentScanned").textContent=data.totalScanned;document.getElementById("agentTop").textContent=data.top5[0].name+"("+data.top5[0].code+")";document.getElementById("agentTopScore").textContent=data.top5[0].score;
-    if(agentScoreChartInstance)agentScoreChartInstance.destroy();const colors=['#ff6b6b','#ffa502','#2ed573','#1e90ff','#a55eea'];agentScoreChartInstance=new Chart(document.getElementById('agentScoreChart'),{type:'bar',data:{labels:data.top5.map(s=>s.name),datasets:[{label:'점수',data:data.top5.map(s=>s.score),backgroundColor:colors.map(c=>c+'88'),borderColor:colors,borderWidth:2}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},title:{display:true,text:'TOP 5 종목 점수',color:'#00d4ff',font:{size:14}}},scales:{x:{ticks:{color:'#888'},grid:{color:'#1a1a2e'}},y:{ticks:{color:'#ddd',font:{size:13}},grid:{display:false}}}}});
-    if(agentRadarChartInstance)agentRadarChartInstance.destroy();const mv={pc:Math.max(...data.top5.map(s=>Math.abs(s.price_chg)))||1,vr:Math.max(...data.top5.map(s=>s.vol_ratio))||1,vo:Math.max(...data.top5.map(s=>s.volatility))||1,sc:Math.max(...data.top5.map(s=>s.score))||1};const rc=['rgba(255,107,107,0.6)','rgba(255,165,2,0.6)','rgba(46,213,115,0.6)','rgba(30,144,255,0.6)','rgba(165,94,234,0.6)'];agentRadarChartInstance=new Chart(document.getElementById('agentRadarChart'),{type:'radar',data:{labels:['수익률','RSI','거래량','변동성','점수'],datasets:data.top5.map((s,i)=>({label:s.name,data:[Math.abs(s.price_chg)/mv.pc*100,s.rsi,s.vol_ratio/mv.vr*100,s.volatility/mv.vo*100,s.score/mv.sc*100],backgroundColor:rc[i].replace('0.6','0.15'),borderColor:rc[i],borderWidth:2,pointRadius:3}))},options:{responsive:true,plugins:{title:{display:true,text:'TOP 5 지표 비교',color:'#00d4ff',font:{size:14}},legend:{labels:{color:'#888'}}},scales:{r:{ticks:{color:'#666',backdropColor:'transparent'},grid:{color:'#1a1a2e'},pointLabels:{color:'#aaa',font:{size:12}}}}}});
-    let th='<h3 style="color:#00d4ff;">추가 후보 종목</h3><table><tr><th>종목(코드)</th><th>수익률</th><th>RSI</th><th>거래비율</th><th>점수</th></tr>';for(const s of(data.candidates||[]).slice(0,20)){th+=`<tr><td>${s.name}(${s.code})</td><td class="${s.price_chg>=0?'profit-positive':'profit-negative'}">${s.price_chg}%</td><td>${s.rsi}</td><td>${s.vol_ratio}배</td><td>${s.score}</td></tr>`;}document.getElementById("agentTable").innerHTML=th+'</table>';if(data.weights){let whtml='<div style="background:#12121f;border-radius:8px;padding:15px;margin-bottom:15px;"><h3 style="color:#00d4ff;margin-bottom:10px;">🧠 AI 분석 가중치</h3><div style="display:flex;gap:10px;flex-wrap:wrap;">';const wnames={price_chg:'📈 주가변동',vol_ratio:'📊 거래량',rebound:'🔄 반등',stability:'🛡️ 안정성',trend:'📐 추세',volatility:'⚡ 변동성'};for(const[k,v]of Object.entries(data.weights)){const color=v>0?'#53cf60':v<0?'#cf5353':'#666';const width=Math.abs(v)*100;whtml+=`<div style="flex:1;min-width:140px;background:#1a1a2e;border-radius:8px;padding:10px;text-align:center;"><div style="color:#888;font-size:0.8rem;">${wnames[k]||k}</div><div style="color:${color};font-size:1.2rem;font-weight:bold;">${v>0?'+':''}${v.toFixed(1)}</div><div style="background:#2a2a4a;border-radius:4px;height:6px;margin-top:5px;"><div style="background:${color};height:100%;border-radius:4px;width:${width}%;"></div></div></div>`;}whtml+='</div></div>';document.getElementById("agentWeights").innerHTML=whtml;}}catch(e){alert("AI Agent 실패: "+e.message);}btn.disabled=false;btn.textContent="🤖 AI 분석 실행";}
+    async function runPredict() {
+        const btn = document.getElementById("runPredictBtn");
+        const code = (document.getElementById("tickerInput").value || "KS11").trim();
+        const days = parseInt(document.getElementById("predictDays").value) || 100;
+        const modelVersion = document.getElementById("modelVersion").value;
+        btn.disabled = true; btn.textContent = "⏳ 예측 중...";
+        try {
+            const res = await fetch(`${API}/backtest/predict`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({code, days, modelVersion}) // modelVersion: 백엔드가 lstm_service까지 전달, 없거나 실패면 자동 폴백
+            });
+            const result = await res.json();
+            let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+            if (!data || data.error) {
+                alert("예측 실패: " + (data && data.error ? data.error : "응답 없음"));
+                btn.disabled = false; btn.textContent = "🚀 AI에게 물어보기"; return;
+            }
+            document.getElementById("predictResultCard").style.display = "block";
+
+            const actual = Number(data.latestActual) || 0;
+            const predicted = Number(data.latestPredicted) || 0;
+            const deltaPct = actual ? ((predicted - actual) / actual) * 100 : 0;
+            const dirAcc = Number(data.directionAccuracy) || 0;
+
+            // 방향 판단: 변동률 ±0.3% 미만은 Hold
+            const dirEl = document.getElementById("predictDirection");
+            let dirLabel, dirClass, summaryText;
+            if (deltaPct > 0.3) {
+                dirLabel = "📈 상승 가능성 우세"; dirClass = "direction-label direction-up";
+                summaryText = `${modelVersion} 모델이 ${code}에 대해 상승 신호를 예측했습니다. (방향 정확도 ${dirAcc}%)`;
+            } else if (deltaPct < -0.3) {
+                dirLabel = "📉 하락 가능성 우세"; dirClass = "direction-label direction-down";
+                summaryText = `${modelVersion} 모델이 ${code}에 대해 하락 신호를 예측했습니다. (방향 정확도 ${dirAcc}%) 매도 신호는 모델 한계상 정확도가 낮으니 참고용으로만 활용하세요.`;
+            } else {
+                dirLabel = "🤔 방향 불확실 (Hold)"; dirClass = "direction-label direction-hold";
+                summaryText = `${modelVersion} 모델이 ${code}에 대해 뚜렷한 방향 신호를 보이지 않습니다. 추가 지표 확인을 권장합니다.`;
+            }
+            dirEl.textContent = dirLabel;
+            dirEl.className = dirClass;
+
+            // FIX 20260528: 신뢰도를 directionAccuracy(과거 검증 정확도) 대신
+            //               V5 게이팅 신뢰도(confidenceEntry, 0~1)로 표시. 의미상 더 정확.
+            //               방향 정확도는 아래 상세보기 줄(predictDirAcc)에 그대로 표시됨.
+            const rawConf = (typeof data.confidenceEntry === "number") ? data.confidenceEntry
+                          : (typeof data.confidenceExit === "number") ? data.confidenceExit : null;
+            const confPct = (rawConf !== null) ? Math.round(rawConf * 100) : Math.round(dirAcc);
+            document.getElementById("predictStars").textContent = buildConfidenceStars(confPct);
+            document.getElementById("predictConfidence").textContent = `신뢰도 ${confPct}%`;
+            document.getElementById("predictSummary").textContent = summaryText;
+
+            const sign = deltaPct >= 0 ? "+" : "";
+            document.getElementById("predictDeltaT1").textContent = `${sign}${deltaPct.toFixed(2)}%`;
+            document.getElementById("predictActual").textContent = actual.toLocaleString();
+            document.getElementById("predictedClose").textContent = predicted.toLocaleString();
+            document.getElementById("predictDirAcc").textContent = `${dirAcc}%`;
+            document.getElementById("predictMape").textContent = `${data.mape || 0}%`;
+
+            // NEW [Model Version Routing]: 실제 사용 모델 + 폴백 경고
+            const actualModel = data.modelVersion || modelVersion;
+            const requestedModel = data.modelRequested || modelVersion;
+            const fellBack = data.modelFallback === true;
+            // "적용 모델" 배지에 실제/요청 둘 다 표시 (다르면 강조)
+            if (fellBack && requestedModel && requestedModel.toLowerCase() !== 'auto'
+                && actualModel !== requestedModel) {
+                document.getElementById("predictModelBadge").innerHTML =
+                    `<strong>${actualModel}</strong> <span style="color:#ffa502;">(요청: ${requestedModel} → 폴백)</span>`;
+            } else {
+                document.getElementById("predictModelBadge").textContent = actualModel;
+            }
+            // 노란 경고 배너 — 폴백 발동 시에만 표시
+            const warnEl = document.getElementById("predictModelWarning");
+            if (fellBack) {
+                warnEl.style.display = "block";
+                warnEl.innerHTML =
+                    `⚠️ ${requestedModel} 모델을 선택했으나 로드 실패로 ${actualModel} 모델이 자동 사용되었습니다.`;
+            } else {
+                warnEl.style.display = "none";
+                warnEl.innerHTML = "";
+            }
+        } catch (e) {
+            alert("예측 실패: " + e.message);
+        }
+        btn.disabled = false; btn.textContent = "🚀 AI에게 물어보기";
+    }
+
+    // STEP4 20260527: AI 추천 탭 — manager(/api/recommend/run) 연동 + 로딩/진행률 + 심층 리포트
+    function scoreToStars(score, maxScore) {
+        const ratio = maxScore ? score / maxScore : 0;
+        const filled = Math.max(1, Math.min(5, Math.round(ratio * 5)));
+        return '●'.repeat(filled) + '○'.repeat(5 - filled);
+    }
+
+    // 예시 칩 클릭 → 자연어 입력칸 채우기
+    function fillAgentQuery(text) {
+        const el = document.getElementById("agentQuery");
+        el.value = text; el.focus();
+    }
+
+    // manager report(마크다운) → 최소 HTML 변환 (외부 라이브러리 없음)
+    function renderReportMarkdown(md) {
+        if (!md) return "";
+        let safe = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        safe = safe.replace(/^#{2,4}\s*(.+)$/gm, '<h3>$1</h3>');
+        safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/\n/g, '<br>');
+        return safe;
+    }
+
+    // report 본문에서 종목 이름 주변 문장 발췌 (카드 추천 이유용)
+    // FIX 20260528: 기존 indexOf(name)은 서론에 종목명 5개가 한꺼번에 나열되면
+    //   모든 종목이 동일한 서론 부분을 발췌하던 버그.
+    //   ① 종목명이 헤더(### / ## 라인) 안에 등장하는 위치를 최우선 검색 → 해당 섹션 본문 발췌.
+    //   ② 헤더 매칭 실패 시 lastIndexOf로 폴백 (서론 회피, 본문에서 마지막 등장 지점 사용).
+    function excerptForStock(report, name) {
+        if (!report || !name) return "";
+        const escName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const headerRe = new RegExp("^(#{2,4})[^\\n]*" + escName + "[^\\n]*$", "m");
+        const headerMatch = report.match(headerRe);
+        let start;
+        if (headerMatch) {
+            // 헤더 라인 끝 다음부터 본문 발췌
+            start = headerMatch.index + headerMatch[0].length;
+        } else {
+            // 헤더 매칭 실패: 마지막 등장 위치 사용 (서론의 일괄 나열 회피)
+            const last = report.lastIndexOf(name);
+            if (last < 0) return "";
+            start = last + name.length;
+        }
+        let raw = report.slice(start, start + 700);
+        // 다음 종목 섹션(헤더 또는 `---` 구분선) 전까지만 사용
+        const nextBoundary = raw.search(/\n#{2,4}\s|\n-{3,}\s*\n/);
+        if (nextBoundary > 0) raw = raw.slice(0, nextBoundary);
+        let chunk = raw.replace(/[#*`>\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!chunk) return "";
+        return chunk.length > 140 ? chunk.slice(0, 140) + "…" : chunk;
+    }
+
+    // 시간 기반 진행률 추정 (Step 3 실측: extract~13s, engine~80s, agent~263s, total~356s)
+    const AGENT_ESTIMATED_TOTAL = 356;
+    const AGENT_STAGES = [
+        { until: 15,     step: 1, msg: "1단계 · 사용자 입력 분석 중…",   sub: "무엇을 원하는지 AI가 이해하는 중이에요." },
+        { until: 95,     step: 2, msg: "2단계 · 한국 주식 300개 스캔 중…", sub: "실시간 시세로 종목을 추리는 중이에요 (조금 걸려요)." },
+        { until: 999999, step: 3, msg: "3단계 · 심층 리포트 생성 중…",   sub: "뉴스까지 찾아보며 리포트를 쓰는 중 — 가장 오래 걸리는 단계예요." }
+    ];
+    let _agentTimer = null;
+
+    function startAgentProgress() {
+        const t0 = Date.now();
+        const bar = document.getElementById("agentProgressBar");
+        const msg = document.getElementById("agentLoadingMsg");
+        const sub = document.getElementById("agentLoadingSub");
+        const elapsedEl = document.getElementById("agentElapsed");
+        function tick() {
+            const sec = (Date.now() - t0) / 1000;
+            const stage = AGENT_STAGES.find(s => sec < s.until) || AGENT_STAGES[2];
+            msg.textContent = stage.msg;
+            sub.textContent = stage.sub;
+            elapsedEl.textContent = `경과 ${Math.floor(sec)}초`;
+            bar.style.width = Math.min(95, (sec / AGENT_ESTIMATED_TOTAL) * 100).toFixed(1) + "%";
+            for (let i = 1; i <= 3; i++) {
+                const chip = document.getElementById("pstep" + i);
+                if (!chip) continue;
+                chip.classList.remove("active", "done");
+                if (i < stage.step) chip.classList.add("done");
+                else if (i === stage.step) chip.classList.add("active");
+            }
+        }
+        tick();
+        _agentTimer = setInterval(tick, 1000);
+    }
+    function stopAgentProgress(complete) {
+        if (_agentTimer) { clearInterval(_agentTimer); _agentTimer = null; }
+        if (complete) {
+            const bar = document.getElementById("agentProgressBar");
+            if (bar) bar.style.width = "100%";
+            for (let i = 1; i <= 3; i++) {
+                const chip = document.getElementById("pstep" + i);
+                if (chip) { chip.classList.remove("active"); chip.classList.add("done"); }
+            }
+        }
+    }
+
+    async function runAgent() {
+        const btn = document.getElementById("runAgentBtn");
+        const query = (document.getElementById("agentQuery").value || "").trim()
+            || "안정적인 대형주 3개 추천해줘";
+        btn.disabled = true; btn.textContent = "⏳ 분석 중...";
+        document.getElementById("agentResultCard").style.display = "block";
+        document.getElementById("agentLoading").style.display = "block";
+        document.getElementById("agentRecList").innerHTML = "";
+        document.getElementById("agentSummaryBox").style.display = "none";
+        const reportBox = document.getElementById("agentReportBox");
+        if (reportBox) reportBox.style.display = "none";
+        startAgentProgress();
+        try {
+            const res = await fetch(`${API}/recommend/run`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ query })
+            });
+            const result = await res.json();
+            stopAgentProgress(true);
+            document.getElementById("agentLoading").style.display = "none";
+
+            // 502 등 실패: ApiResponse.success=false + message 에 에러 내용
+            if (!res.ok || !result.success) {
+                document.getElementById("agentRecList").innerHTML =
+                    `<div class="error">추천 실패: ${result.message || '응답 없음'}</div>`;
+                btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기"; return;
+            }
+            let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+            if (!data || data.error) {
+                document.getElementById("agentRecList").innerHTML =
+                    `<div class="error">추천 실패: ${(data && data.error) ? data.error : '응답 없음'}</div>`;
+                btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기"; return;
+            }
+
+            const stocks = (data.scored_stocks || []);
+            const top = stocks.slice(0, 5);
+            const validScores = top.map(s => Number(s.score)).filter(v => !isNaN(v));
+            const maxScore = validScores.length ? Math.max(...validScores, 1) : 1;
+            let html = "";
+            top.forEach((s, i) => {
+                const rank = i + 1;
+                const rankClass = rank <= 3 ? `rank-${rank}` : "";
+                const hasScore = s.score !== null && s.score !== undefined && !isNaN(Number(s.score));
+                const scoreNum = hasScore ? Number(s.score) : null;
+                const stars = hasScore ? scoreToStars(scoreNum, maxScore) : "○○○○○";
+                const scoreLabel = hasScore ? `${scoreNum}점` : "점수 미산출";
+                const change = Number(s.price_chg) || 0;
+                const excerpt = excerptForStock(data.report, s.name);
+                const reason = excerpt
+                    ? `📝 ${excerpt}`
+                    : `📝 최근 변동 ${change >= 0 ? '+' : ''}${change}%, RSI ${s.rsi}, 거래량 ${s.vol_ratio}배, MACD ${s.macd_status || '-'}. 모멘텀 점수 ${scoreLabel} 종목입니다.`;
+                html += `
+                    <article class="rec-card ${rankClass}">
+                        <header>
+                            <span class="rank">${rank}️⃣</span>
+                            <span class="ticker">${s.ticker} — ${s.name || ''}</span>
+                            <span class="score">매력도 ${stars} (${scoreLabel})</span>
+                        </header>
+                        <p class="reason">${reason}</p>
+                    </article>`;
+            });
+            if (!html) html = '<div class="loading">추천 결과가 없습니다.</div>';
+            document.getElementById("agentRecList").innerHTML = html;
+
+            // 심층 리포트 전체 (토글)
+            if (reportBox && data.report) {
+                document.getElementById("agentReportContent").innerHTML = renderReportMarkdown(data.report);
+                reportBox.style.display = "block";
+            }
+
+            // 종합 의견 + 소요시간 안내
+            const el = data.elapsed || {};
+            const totalSec = el.total ? Math.round(el.total) : null;
+            const topName = top.length ? `${top[0].name}(${top[0].ticker})` : '특정 종목';
+            document.getElementById("agentSummaryText").textContent =
+                `"${data.query || query}" 요청으로 ${stocks.length}개 종목을 분석해 상위 ${top.length}개를 추렸어요. `
+                + `${topName}이(가) 가장 높은 점수를 보였습니다`
+                + (totalSec ? ` (분석 ${totalSec}초 소요).` : '.')
+                + ` 본 결과는 참고용이며, 실제 투자는 사용자 판단에 따릅니다.`;
+            document.getElementById("agentSummaryBox").style.display = "block";
+        } catch (e) {
+            stopAgentProgress(false);
+            document.getElementById("agentLoading").style.display = "none";
+            document.getElementById("agentRecList").innerHTML =
+                `<div class="error">AI Agent 실패: ${e.message}</div>`;
+        }
+        btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기";
+    }
+
+    // NEW UI 20260520: 모델 성능 검증 도구
+    let _stockCodesCache = null;
+    let _autocompleteDebounceTimer = null;
+    let _autocompleteActiveIdx = -1;
+
+    async function loadStockCodes() {
+        if (_stockCodesCache) return _stockCodesCache;
+        try {
+            const res = await fetch('/stock_codes.json');
+            const json = await res.json();
+            _stockCodesCache = json.stocks || [];
+        } catch (e) {
+            _stockCodesCache = [];
+        }
+        return _stockCodesCache;
+    }
+
+    function renderAutocomplete(matches) {
+        const dd = document.getElementById('verifyAutocomplete');
+        if (!matches.length) { dd.classList.remove('show'); dd.innerHTML = ''; return; }
+        dd.innerHTML = matches.map((s, i) =>
+            `<div class="autocomplete-item" data-code="${s.code}" data-idx="${i}">
+                <span class="ac-code">${s.code}</span><span class="ac-name">${s.name}</span><span class="ac-market">${s.market}</span>
+            </div>`
+        ).join('');
+        dd.classList.add('show');
+        _autocompleteActiveIdx = -1;
+        dd.querySelectorAll('.autocomplete-item').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                document.getElementById('verifyTicker').value = el.dataset.code;
+                dd.classList.remove('show');
+            });
+        });
+    }
+
+    async function onTickerInput(e) {
+        clearTimeout(_autocompleteDebounceTimer);
+        const q = (e.target.value || '').trim().toLowerCase();
+        _autocompleteDebounceTimer = setTimeout(async () => {
+            const stocks = await loadStockCodes();
+            if (!q) { renderAutocomplete(stocks); return; }
+            const matches = stocks.filter(s =>
+                s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+            );
+            renderAutocomplete(matches);
+        }, 300);
+    }
+
+    function onTickerKeydown(e) {
+        const dd = document.getElementById('verifyAutocomplete');
+        if (!dd.classList.contains('show')) return;
+        const items = dd.querySelectorAll('.autocomplete-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            _autocompleteActiveIdx = Math.min(_autocompleteActiveIdx + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            _autocompleteActiveIdx = Math.max(_autocompleteActiveIdx - 1, 0);
+        } else if (e.key === 'Enter' && _autocompleteActiveIdx >= 0) {
+            e.preventDefault();
+            const sel = items[_autocompleteActiveIdx];
+            document.getElementById('verifyTicker').value = sel.dataset.code;
+            dd.classList.remove('show');
+            return;
+        } else if (e.key === 'Escape') {
+            dd.classList.remove('show');
+            return;
+        } else {
+            return;
+        }
+        items.forEach((el, i) => el.classList.toggle('active', i === _autocompleteActiveIdx));
+    }
+
+    function initVerifyAutocomplete() {
+        const input = document.getElementById('verifyTicker');
+        if (!input) return;
+        input.addEventListener('input', onTickerInput);
+        input.addEventListener('focus', onTickerInput);
+        input.addEventListener('keydown', onTickerKeydown);
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'verifyTicker') {
+                document.getElementById('verifyAutocomplete').classList.remove('show');
+            }
+        });
+    }
+
+    // FIX 20260523: AI 예측 탭(#tickerInput) 자동완성 — 검증 도구와 동일 패턴.
+    //   - loadStockCodes() 캐시 공유 (데이터/네트워크 재사용)
+    //   - CSS .autocomplete-dropdown/.autocomplete-item 재사용
+    //   - 디바운싱 300ms, ↑↓ Enter Esc 키 매핑 동일
+    //   - 활성 인덱스/타이머 변수만 분리해 검증 도구와 상태 격리 (회귀 방지)
+    let _predictAcDebounceTimer = null;
+    let _predictAcActiveIdx = -1;
+
+    function renderPredictAutocomplete(matches) {
+        const dd = document.getElementById('tickerAutocomplete');
+        if (!matches.length) { dd.classList.remove('show'); dd.innerHTML = ''; return; }
+        dd.innerHTML = matches.map((s, i) =>
+            `<div class="autocomplete-item" data-code="${s.code}" data-idx="${i}">
+                <span class="ac-code">${s.code}</span><span class="ac-name">${s.name}</span><span class="ac-market">${s.market}</span>
+            </div>`
+        ).join('');
+        dd.classList.add('show');
+        _predictAcActiveIdx = -1;
+        dd.querySelectorAll('.autocomplete-item').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                document.getElementById('tickerInput').value = el.dataset.code;
+                dd.classList.remove('show');
+                // FIX 20260528: 자동완성은 프로그래밍적 값 변경이라 input/change 이벤트가
+                //   자동 발생하지 않아 종가 차트가 갱신되지 않던 버그. 명시적으로 차트 새로고침.
+                if (typeof loadStockData === 'function') loadStockData();
+            });
+        });
+    }
+
+    async function onPredictTickerInput(e) {
+        clearTimeout(_predictAcDebounceTimer);
+        const q = (e.target.value || '').trim().toLowerCase();
+        _predictAcDebounceTimer = setTimeout(async () => {
+            const stocks = await loadStockCodes();
+            if (!q) { renderPredictAutocomplete(stocks); return; }
+            const matches = stocks.filter(s =>
+                s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+            );
+            renderPredictAutocomplete(matches);
+        }, 300);
+    }
+
+    function onPredictTickerKeydown(e) {
+        const dd = document.getElementById('tickerAutocomplete');
+        if (!dd.classList.contains('show')) return;
+        const items = dd.querySelectorAll('.autocomplete-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            _predictAcActiveIdx = Math.min(_predictAcActiveIdx + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            _predictAcActiveIdx = Math.max(_predictAcActiveIdx - 1, 0);
+        } else if (e.key === 'Enter' && _predictAcActiveIdx >= 0) {
+            e.preventDefault();
+            const sel = items[_predictAcActiveIdx];
+            document.getElementById('tickerInput').value = sel.dataset.code;
+            dd.classList.remove('show');
+            // FIX 20260528: 키보드 Enter 선택 경로도 동일하게 차트 갱신 트리거.
+            if (typeof loadStockData === 'function') loadStockData();
+            return;
+        } else if (e.key === 'Escape') {
+            dd.classList.remove('show');
+            return;
+        } else {
+            return;
+        }
+        items.forEach((el, i) => el.classList.toggle('active', i === _predictAcActiveIdx));
+    }
+
+    function initPredictAutocomplete() {
+        const input = document.getElementById('tickerInput');
+        if (!input) return;
+        input.addEventListener('input', onPredictTickerInput);
+        input.addEventListener('focus', onPredictTickerInput);
+        input.addEventListener('keydown', onPredictTickerKeydown);
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'tickerInput') {
+                document.getElementById('tickerAutocomplete').classList.remove('show');
+            }
+        });
+    }
+
+    async function runVerify() {
+        const btn = document.getElementById('runVerifyBtn');
+        const code = (document.getElementById('verifyTicker').value || 'KS11').trim();
+        const modelVersion = document.getElementById('verifyModelVersion').value;
+        const startDate = document.getElementById('verifyStart').value;
+        const endDate = document.getElementById('verifyEnd').value;
+        if (!startDate || !endDate) { alert('시작일과 종료일을 모두 선택하세요'); return; }
+        if (startDate >= endDate) { alert('시작일은 종료일보다 이전이어야 합니다'); return; }
+        btn.disabled = true; btn.textContent = '⏳ 검증 중...';
+        try {
+            const res = await fetch(`${API}/backtest/verify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({code, modelVersion, startDate, endDate})
+            });
+            const result = await res.json();
+            let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+            if (!data || data.error) {
+                alert('검증 실패: ' + ((data && data.error) ? data.error : '응답 없음'));
+                btn.disabled = false; btn.textContent = '🎯 검증 실행'; return;
+            }
+            document.getElementById('verifyResult').style.display = 'block';
+
+            const dirAcc = Number(data.directionAccuracy) || 0;
+            const naive = Number(data.naiveBaseline) || 0;
+            const improvement = Number(data.improvement) || 0;
+            const avgConf = Number(data.avgConfidence) || 0;
+            const samples = Number(data.samplesEvaluated) || 0;
+            // FIX 20260528: '평균 신뢰도' 칸이 avgConfidence(~0.0002)를 곱해 항상 0.0%로 보이던 버그.
+            //   V5 Confidence Gating 통과율(gating_ratio)로 교체. (예: 0.9793 → 97.9%)
+            //   gating 미적용 모델(V2~V4)일 때는 종전 avgConf로 폴백.
+            const gatingApplied = !!data.confidence_gating_applied;
+            const gatingRatio = (typeof data.gating_ratio === "number") ? data.gating_ratio : null;
+            const confPct = (gatingApplied && gatingRatio !== null)
+                ? (gatingRatio * 100)
+                : (avgConf * 100);
+
+            document.getElementById('vsDirAcc').textContent = `${dirAcc.toFixed(1)}%`;
+            document.getElementById('vsAvgConf').textContent = `${confPct.toFixed(1)}%`;
+            document.getElementById('vsNaive').textContent = `${naive.toFixed(1)}%`;
+            document.getElementById('vsImprove').textContent = `${improvement >= 0 ? '+' : ''}${improvement.toFixed(1)}%p`;
+            document.getElementById('vsSamples').textContent = samples.toLocaleString();
+
+            const impCard = document.getElementById('vsImprovementCard');
+            impCard.classList.toggle('improved', improvement > 0);
+            impCard.classList.toggle('regressed', improvement < 0);
+
+            const periodEl = document.getElementById('verifyPeriodLabel');
+            const period = (data.periodLabel || 'unknown').toLowerCase();
+            periodEl.className = 'period-label ' + period;
+            // NEW [Split Alignment]: 학습 코드가 train/test 80:20만 쓰므로 'val' 라벨 제거. 3가지로 단순화.
+            if (period === 'train') periodEl.textContent = '⚠️ 학습 데이터 구간 — 정확도 부풀림 가능, 참고용';
+            else if (period === 'test') periodEl.textContent = '✓ 테스트 구간 — 모델이 학습 중 보지 않은 데이터';
+            else if (period === 'mixed') periodEl.textContent = '⚠️ 학습/테스트 경계 걸침 — 해석 주의';
+            else periodEl.textContent = '? 구간 판정 불가';
+
+            document.getElementById('vsBaselineCompare').innerHTML =
+                `naive baseline <strong>${naive.toFixed(1)}%</strong> vs ${data.modelVersion || modelVersion} <strong>${dirAcc.toFixed(1)}%</strong> — ` +
+                `<span class="bc-improve" style="color:${improvement >= 0 ? '#53cf60' : '#cf5353'}">${improvement >= 0 ? '+' : ''}${improvement.toFixed(1)}%p ${improvement >= 0 ? '개선' : '저하'}</span>`;
+
+            // NEW [Split Alignment]: 학습 코드와 동일한 windowed 80/20. val 없음 → vsValRange 안내문 유지(JS 갱신 X).
+            document.getElementById('vsTrainRange').textContent = `Train: ${data.trainStartDate || '-'} ~ ${data.trainEndDate || '-'}`;
+            document.getElementById('vsTestRange').textContent = `Test: ${data.testStartDate || '-'} ~ ${data.fullEndDate || '-'}`;
+            // splitBasis가 있으면 작게 노출 (학술적 투명성)
+            if (data.splitBasis) {
+                const valEl = document.getElementById('vsValRange');
+                valEl.textContent = `Val: 없음 · ${data.splitBasis}`;
+            }
+
+            // NEW UI 20260522: 검증 결과를 누적 저장 후 대시보드 갱신
+            // FIX 20260523: 신뢰도필터 컬럼이 avgConfidence(평균 변동률)를 잘못 가리키던 버그 수정.
+            //               V5 게이팅 메타(gatingRatio, gatingApplied 등)를 함께 저장해 표에서 정확히 표시.
+            saveVerifyRecord({
+                directionAccuracy: dirAcc,
+                model: data.modelVersion || modelVersion,
+                code: code,
+                startDate: startDate,
+                endDate: endDate,
+                avgConfidence: avgConf,
+                gatingApplied: !!data.confidence_gating_applied,
+                gatingRatio: (typeof data.gating_ratio === "number") ? data.gating_ratio : null,
+                samplesPredicted: (typeof data.samples_predicted === "number") ? data.samples_predicted : null,
+                samplesTotal: (typeof data.samples_total === "number") ? data.samples_total : null,
+                naiveBaseline: naive,
+                improvement: improvement,
+                samplesEvaluated: samples,
+                periodLabel: data.periodLabel || null,
+                verifiedAt: new Date().toISOString()
+            });
+            loadVerifyHistory();
+        } catch (e) {
+            alert('검증 실패: ' + e.message);
+        }
+        btn.disabled = false; btn.textContent = '🎯 검증 실행';
+    }
+
+    document.addEventListener('DOMContentLoaded', initVerifyAutocomplete);
+    // FIX 20260523: AI 예측 탭 자동완성도 페이지 로드 시 활성화 (검증 도구와 독립 인스턴스)
+    document.addEventListener('DOMContentLoaded', initPredictAutocomplete);
+
+    /* =====================================================================
+     * NEW UI 20260522: 모델 성능 검증 누적(localStorage) + 시스템 요약 4개 카드 갱신
+     * - 저장 키: quantmaster_verify_history (배열)
+     * - 각 레코드: { directionAccuracy, model, code, startDate, endDate,
+     *               confidenceFilter, avgConfidence, naiveBaseline,
+     *               improvement, samplesEvaluated, periodLabel, verifiedAt }
+     * - 정렬: directionAccuracy 내림차순
+     * - 강조: 최고치 행에 🏆 아이콘 + top-row 클래스
+     * ===================================================================== */
+    const VERIFY_STORAGE_KEY = "quantmaster_verify_history";
+
+    function getVerifyHistory() {
+        try {
+            const raw = localStorage.getItem(VERIFY_STORAGE_KEY);
+            if (!raw) return [];
+            const arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveVerifyRecord(record) {
+        const history = getVerifyHistory();
+        history.push(record);
+        try {
+            localStorage.setItem(VERIFY_STORAGE_KEY, JSON.stringify(history));
+        } catch (e) {
+            console.warn("검증 누적 저장 실패", e);
+        }
+    }
+
+    function clearVerifyHistory() {
+        if (!confirm("누적된 검증 결과를 모두 초기화하시겠습니까?")) return;
+        try { localStorage.removeItem(VERIFY_STORAGE_KEY); } catch (e) {}
+        loadVerifyHistory();
+    }
+
+    function fmtDate(d) {
+        if (!d) return "-";
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return d;
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+
+    function renderSystemSummary(history) {
+        if (!history.length) {
+            document.getElementById("avgDirAcc").textContent = "-";
+            document.getElementById("avgDirAccSub").textContent = "검증 결과 누적 기준 · 데이터 없음";
+            document.getElementById("baselineImprove").textContent = "-";
+            document.getElementById("verifiedTickers").textContent = "0";
+            document.getElementById("verifiedTickersSub").textContent = "아직 검증된 종목 없음";
+            document.getElementById("verifyPeriodSummary").textContent = "-";
+            document.getElementById("verifyPeriodSub").textContent = "검증을 실행해 주세요";
+            document.getElementById("card-improvement").classList.remove("improved", "regressed");
+            return;
+        }
+
+        // ① 평균 방향정확도
+        const avgDir = history.reduce((s, r) => s + (Number(r.directionAccuracy) || 0), 0) / history.length;
+        document.getElementById("avgDirAcc").textContent = avgDir.toFixed(1) + "%";
+        const uniqueModels = [...new Set(history.map(r => r.model))];
+        document.getElementById("avgDirAccSub").textContent =
+            `${history.length}건 누적 · ${uniqueModels.length === 1 ? uniqueModels[0] + " 모델" : uniqueModels.length + "개 모델"} 기준`;
+
+        // ② baseline 개선폭 (평균)
+        const validImp = history.filter(r => typeof r.improvement === "number" && !isNaN(r.improvement));
+        if (validImp.length) {
+            const avgImp = validImp.reduce((s, r) => s + r.improvement, 0) / validImp.length;
+            const sign = avgImp >= 0 ? "+" : "";
+            document.getElementById("baselineImprove").textContent = `${sign}${avgImp.toFixed(1)}%p`;
+            const card = document.getElementById("card-improvement");
+            card.classList.toggle("improved", avgImp > 0);
+            card.classList.toggle("regressed", avgImp < 0);
+        } else {
+            document.getElementById("baselineImprove").textContent = "-";
+        }
+
+        // ③ 검증 종목 수
+        const tickers = [...new Set(history.map(r => r.code).filter(Boolean))];
+        document.getElementById("verifiedTickers").textContent = tickers.length + "종목";
+        if (tickers.length === 1) {
+            document.getElementById("verifiedTickersSub").textContent = tickers[0];
+        } else if (tickers.length > 1) {
+            document.getElementById("verifiedTickersSub").textContent =
+                `${tickers[0]} 외 ${tickers.length - 1}종`;
+        }
+
+        // ④ 검증 기간 (최소 startDate ~ 최대 endDate)
+        const starts = history.map(r => r.startDate).filter(Boolean).sort();
+        const ends = history.map(r => r.endDate).filter(Boolean).sort();
+        if (starts.length && ends.length) {
+            const minStart = starts[0];
+            const maxEnd = ends[ends.length - 1];
+            const months = monthsBetween(minStart, maxEnd);
+            document.getElementById("verifyPeriodSummary").textContent =
+                months ? `${months}개월` : "-";
+            document.getElementById("verifyPeriodSub").textContent = `${minStart} ~ ${maxEnd}`;
+        }
+    }
+
+    function monthsBetween(startStr, endStr) {
+        const s = new Date(startStr);
+        const e = new Date(endStr);
+        if (isNaN(s) || isNaN(e)) return null;
+        return (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
+    }
+
+    function renderVerifyHistoryTable(history) {
+        const container = document.getElementById("verifyHistoryTable");
+        if (!container) return;
+        if (!history.length) {
+            container.innerHTML = '<div class="loading">검증 결과가 아직 없습니다. 🔮 AI 예측 탭의 [모델 성능 검증 도구]로 첫 검증을 실행해 보세요.</div>';
+            return;
+        }
+        // 방향정확도 내림차순
+        const sorted = [...history].sort((a, b) => (Number(b.directionAccuracy) || 0) - (Number(a.directionAccuracy) || 0));
+        const top = sorted[0];
+
+        let html = '<table class="verify-history-table"><tr>'
+            + '<th>방향정확도</th><th>모델</th><th>종목</th><th>검증기간</th><th>신뢰도필터</th><th>검증일자</th>'
+            + '</tr>';
+        for (const r of sorted) {
+            const acc = Number(r.directionAccuracy) || 0;
+            const isTop = (r === top);
+            const trophy = isTop ? '<span class="trophy">🏆</span>' : '';
+            const rowClass = isTop ? 'top-row' : '';
+            // FIX 20260523: 신뢰도필터 = V5 Confidence Gating 통과율(gating_ratio).
+            //               (이전엔 avgConfidence(평균 절대 변동률, ~0.0002)를 곱해서 항상 0%로 표시되던 버그)
+            //               V3/V4 등 게이팅 미적용 모델은 "-" 표시.
+            let confPct = "-";
+            if (r.gatingApplied && typeof r.gatingRatio === "number") {
+                confPct = (r.gatingRatio * 100).toFixed(1) + "%";
+            } else if (typeof r.gatingRatio === "number") {
+                // 이전 레코드 호환 (gatingApplied 미저장이지만 ratio만 있는 경우)
+                confPct = (r.gatingRatio * 100).toFixed(1) + "%";
+            }
+            html += `<tr class="${rowClass}">`
+                + `<td>${trophy}<strong>${acc.toFixed(1)}%</strong></td>`
+                + `<td>${r.model || "-"}</td>`
+                + `<td>${r.code || "-"}</td>`
+                + `<td>${r.startDate || "-"} ~ ${r.endDate || "-"}</td>`
+                + `<td>${confPct}</td>`
+                + `<td>${fmtDate(r.verifiedAt)}</td>`
+                + `</tr>`;
+        }
+        html += '</table>';
+        container.innerHTML = html;
+    }
+
+    function loadVerifyHistory() {
+        const history = getVerifyHistory();
+        renderSystemSummary(history);
+        renderVerifyHistoryTable(history);
+    }
+
+    // NEW UI 20260522: AI 예측 탭의 종목 입력이 바뀌면 종가 차트 자동 갱신
+    document.addEventListener('DOMContentLoaded', () => {
+        const tickerEl = document.getElementById("tickerInput");
+        if (!tickerEl) return;
+        let chartDebounce = null;
+        tickerEl.addEventListener("change", () => {
+            clearTimeout(chartDebounce);
+            chartDebounce = setTimeout(() => loadStockData(), 200);
+        });
+    });
 </script>
 </body>
 </html>

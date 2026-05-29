@@ -1,0 +1,35 @@
+{
+  "code": "035720",
+  "sampler_seed": 46,
+  "n_trials": 100,
+  "best_trial": 84,
+  "best_score": 35.5556,
+  "best_params": {
+    "conf_exit": 0.6681449791941116,
+    "conf_mult": 1094.1791908635016,
+    "bb_exit_high": 0.9922139192936617,
+    "bb_exit_low": -0.7941703357210435,
+    "rsi_exit_high": 80
+  },
+  "bb_our_units": {
+    "bb_exit_high_our": 0.9961,
+    "bb_exit_low_our": 0.1029
+  },
+  "val": {
+    "avg_da": 35.56,
+    "n_exits": 45,
+    "min_trades_required": 11,
+    "penalty": 0
+  },
+  "test": {
+    "da_exit": 45.95,
+    "n_exits": 37,
+    "min_trades_required": 11
+  },
+  "systematic_bias": 0.001355,
+  "timing_sec": {
+    "prep": 107.7,
+    "optuna": 0.4,
+    "total": 108.1
+  }
+}

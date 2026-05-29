@@ -1,0 +1,35 @@
+{
+  "code": "KS11",
+  "sampler_seed": 42,
+  "n_trials": 100,
+  "best_trial": 80,
+  "best_score": 76.6234,
+  "best_params": {
+    "conf_exit": 0.4292769307902653,
+    "conf_mult": 1817.2729921718358,
+    "bb_exit_high": 0.50605221732836,
+    "bb_exit_low": -0.7273582058883992,
+    "rsi_exit_high": 63
+  },
+  "bb_our_units": {
+    "bb_exit_high_our": 0.753,
+    "bb_exit_low_our": 0.1363
+  },
+  "val": {
+    "avg_da": 76.62,
+    "n_exits": 77,
+    "min_trades_required": 11,
+    "penalty": 0
+  },
+  "test": {
+    "da_exit": 48.36,
+    "n_exits": 122,
+    "min_trades_required": 11
+  },
+  "systematic_bias": -0.001047,
+  "timing_sec": {
+    "prep": 146.0,
+    "optuna": 0.4,
+    "total": 146.4
+  }
+}

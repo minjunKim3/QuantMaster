@@ -1,0 +1,35 @@
+{
+  "code": "KQ11",
+  "sampler_seed": 43,
+  "n_trials": 100,
+  "best_trial": 74,
+  "best_score": 80.0,
+  "best_params": {
+    "conf_exit": 0.06681630103367889,
+    "conf_mult": 100.29171228402448,
+    "bb_exit_high": 0.9668293664255376,
+    "bb_exit_low": -0.5041160017256177,
+    "rsi_exit_high": 73
+  },
+  "bb_our_units": {
+    "bb_exit_high_our": 0.9834,
+    "bb_exit_low_our": 0.2479
+  },
+  "val": {
+    "avg_da": 80.0,
+    "n_exits": 20,
+    "min_trades_required": 11,
+    "penalty": 0
+  },
+  "test": {
+    "da_exit": 0.0,
+    "n_exits": 0,
+    "min_trades_required": 11
+  },
+  "systematic_bias": -0.001912,
+  "timing_sec": {
+    "prep": 160.4,
+    "optuna": 0.4,
+    "total": 160.8
+  }
+}
