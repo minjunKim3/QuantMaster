@@ -62,10 +62,13 @@ agent/AItr_manager/venv/
 *.safetensors
 *.onnx
 *.ckpt
+*.joblib
 
 ### 모델/가중치 폴더 ###
+# 20260602: V2~V6 + 향후 버전 일괄 차단 (개별 라인 유지 X).
+#   AutoGluon 가 부수적으로 만드는 version.txt 같은 비-pkl 파일까지 한 번에 잡힘.
 agent/models/
-agent/models_v4/
+agent/models_v*/
 agent/AItr_manager/models/
 agent/AItr_manager/weights/
 **/weights/
@@ -74,9 +77,27 @@ agent/AItr_manager/weights/
 ### 🔐 환경 설정 / 비밀 ###
 .env
 .env.*
+!.env.example
 application-local.properties
+!application-local.properties.example
 application-prod.properties
 application-secret.properties
+# 20260602: 추가 secret 패턴 방어
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.crt
+*.cer
+credentials.json
+service-account*.json
+gcloud-*.json
+aws-credentials*
 
 ### 로그 / 임시 파일 ###
 *.log
@@ -105,8 +126,10 @@ desktop.ini
 *.swp
 *~
 
-# V5 weights 폴더
-agent/models_v5/
+# 20260602: V5 weights 폴더는 위쪽 `agent/models_v*/` 패턴에 흡수됨 → 중복 라인 제거.
+
+# 20260602: 디버그/벤치마크 결과 폴더 — 학습 로그, 비교 스크립트, JSON dump 모두 개인 작업물.
+test_results/
 
 # 루트 venv (test_env 여기 있을 수 있음)
 test_env/
@@ -125,6 +148,8 @@ src/main/resources/static/index_backup_*.html
 # 임시 검증/분석 스크립트 (개인 학습 흔적)
 agent/_*.out
 agent/_*.py
+# 단, 종목 자동완성 갱신 유틸은 예외 (향후 신규 상장 반영 시 사용)
+!agent/_gen_stock_codes.py
 agent/verify_seed.py
 agent/verify_v5_repro.py
 agent/integrate_v5_validation.py

@@ -4,112 +4,334 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuantMaster Dashboard</title>
+    <!-- DESIGN PASS 1 20260602: Pretendard — 한국어 가독성·세련도 모두 양호. CDN 실패해도 system fallback 작동. -->
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <style>
+        /* DESIGN PASS 1 20260602: 디자인 토큰 — 다음 패스에서도 사용. 색감 깊이감/테두리/그림자 일관화. */
+        :root {
+            --bg-0: #07070f;            /* 가장 깊은 배경 (body) */
+            --bg-1: #0e0e1c;            /* 카드 안쪽 보조면 */
+            --bg-2: #14142a;            /* 카드 표면 (기존 #1a1a2e 보다 약간 깊게) */
+            --bg-elev: #1a1a30;         /* 강조 elevation */
+            --border-soft: rgba(255,255,255,0.06);
+            --border-mid:  rgba(255,255,255,0.10);
+            --text-primary: #f1f3f9;
+            --text-secondary: #a8aec0;
+            --text-muted: #6c7287;
+            --accent-cyan: #00d4ff;
+            --accent-cyan-soft: rgba(0,212,255,0.18);
+            --accent-blue: #5e9dff;
+            --accent-purple: #a55eea;
+            --success: #4cd97b;
+            --danger:  #ff6b6b;
+            --warning: #ffa94d;
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04) inset;
+            --shadow-pop:  0 8px 32px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.06) inset;
+            --radius-card: 14px;
+            --radius-sm:   8px;
+            --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; }
-        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px 40px; border-bottom: 2px solid #0f3460; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 24px; color: #00d4ff; }
-        .header .status { font-size: 14px; color: #53cf60; }
-        .tab-nav { display: flex; gap: 0; padding: 0 40px; background: #12121f; border-bottom: 2px solid #2a2a4a; }
-        .tab-btn { padding: 14px 28px; background: transparent; border: none; color: #666; font-size: 15px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
-        .tab-btn:hover { color: #aaa; background: #1a1a2e; }
-        .tab-btn.active { color: #00d4ff; border-bottom-color: #00d4ff; font-weight: bold; }
+        html { font-feature-settings: "ss03", "cv11"; }
+        body {
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+            background: var(--bg-0);
+            background-image:
+                radial-gradient(1200px 600px at 10% -10%, rgba(0,212,255,0.06), transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, rgba(165,94,234,0.05), transparent 60%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.01em;
+        }
+        /* DESIGN PASS 1: 선택 색·스크롤바 디테일 */
+        ::selection { background: var(--accent-cyan-soft); color: #fff; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); background-clip: padding-box; border: 2px solid transparent; }
+        /* DESIGN PASS 1: header — 그라데이션 텍스트 + 부드러운 하단 보더 */
+        .header {
+            background: linear-gradient(135deg, rgba(20,20,42,0.85) 0%, rgba(22,33,62,0.85) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 18px 40px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .header h1 {
+            font-size: 22px; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .header .status { font-size: 13px; color: var(--success); display: inline-flex; align-items: center; gap: 6px; }
+        .header .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
+        /* DESIGN PASS 1: tab-nav — 투명 배경 + 하이라이트 글로우 */
+        .tab-nav {
+            display: flex; gap: 4px;
+            padding: 0 40px;
+            background: rgba(7,7,15,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky; top: 60px; z-index: 49;
+        }
+        .tab-btn {
+            padding: 14px 22px; background: transparent; border: none;
+            color: var(--text-muted); font-size: 14px; font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+        }
+        .tab-btn:hover { color: var(--text-secondary); }
+        .tab-btn.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+            font-weight: 600;
+            text-shadow: 0 0 14px rgba(0,212,255,0.35);
+        }
         .tab-content { display: none; }
-        .tab-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 40px; }
-        .card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; }
-        .card h2 { font-size: 16px; color: #00d4ff; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2a2a4a; }
+        .tab-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 24px 40px; }
+        /* DESIGN PASS 1: card — 깊이감 (subtle gradient + soft shadow + inset highlight) */
+        .card {
+            background: linear-gradient(180deg, rgba(26,26,48,0.6) 0%, rgba(20,20,42,0.6) 100%);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-card);
+            padding: 22px;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+        }
+        .card:hover { border-color: var(--border-mid); }
+        .card h2 {
+            font-size: 15px; font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex; align-items: center; gap: 8px;
+            letter-spacing: -0.01em;
+        }
         .full-width { grid-column: 1 / -1; }
+        /* DESIGN PASS 1: table — 더 가는 보더, hover row 살짝 강조, tabular num */
         table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a4a; font-size: 14px; }
-        th { color: #888; font-weight: normal; font-size: 12px; text-transform: uppercase; }
-        .badge-active { background: #1a4a2a; color: #53cf60; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
-        .badge-inactive { background: #3a2a2a; color: #cf5353; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
-        .profit-positive { color: #53cf60; font-weight: bold; }
-        .profit-negative { color: #cf5353; font-weight: bold; }
-        .btn { padding: 5px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-        .btn-activate { background: #1a4a2a; color: #53cf60; }
-        .btn-activate:hover { background: #2a5a3a; }
-        .btn-delete { background: #3a2a2a; color: #cf5353; }
-        .btn-delete:hover { background: #4a3a3a; }
+        th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border-soft); font-size: 13px; }
+        th { color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+        tbody tr { transition: background 0.18s var(--ease); }
+        tbody tr:hover td { background: rgba(255,255,255,0.025); }
+        td { color: var(--text-secondary); }
+        td:first-child { color: var(--text-primary); }
+        /* DESIGN PASS 1: badge — 부드러운 배경 + 미세한 보더 */
+        .badge-active { background: rgba(76,217,123,0.12); color: var(--success); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid rgba(76,217,123,0.25); }
+        .badge-inactive { background: rgba(255,107,107,0.12); color: var(--danger); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,107,107,0.25); }
+        .profit-positive { color: var(--success); font-weight: 600; }
+        .profit-negative { color: var(--danger); font-weight: 600; }
+        /* DESIGN PASS 1: btn — 약간 더 큰 패딩, hover 시 부드러운 상승감 */
+        .btn { padding: 6px 12px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin-right: 4px; font-weight: 500; transition: background 0.18s var(--ease), transform 0.18s var(--ease); }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-activate { background: rgba(76,217,123,0.14); color: var(--success); border: 1px solid rgba(76,217,123,0.25); }
+        .btn-activate:hover { background: rgba(76,217,123,0.22); }
+        .btn-delete { background: rgba(255,107,107,0.12); color: var(--danger); border: 1px solid rgba(255,107,107,0.25); }
+        .btn-delete:hover { background: rgba(255,107,107,0.2); }
+        /* DESIGN PASS 1: stat — 카드 안 sub-카드. soft border + 정렬된 숫자 */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .stat-item { background: #12121f; border-radius: 8px; padding: 15px; text-align: center; }
-        .stat-item .value { font-size: 24px; font-weight: bold; color: #00d4ff; }
-        .stat-item .label { font-size: 12px; color: #888; margin-top: 5px; }
+        .stat-item {
+            background: linear-gradient(180deg, rgba(14,14,28,0.6), rgba(10,10,22,0.6));
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            padding: 16px 14px;
+            text-align: center;
+            transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+        }
+        .stat-item:hover { border-color: var(--border-mid); transform: translateY(-2px); }
+        .stat-item .value { font-size: 26px; font-weight: 700; color: var(--accent-cyan); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .stat-item .label { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
         /* NEW UI 20260522: 대시보드 재구성 — sublabel(작은 설명줄) + trend(추세 아이콘) */
-        .stat-item .sublabel { font-size: 10px; color: #666; margin-top: 3px; line-height: 1.3; }
+        .stat-item .sublabel { font-size: 10px; color: var(--text-muted); margin-top: 4px; line-height: 1.3; }
         .stat-item .trend { font-size: 11px; margin-left: 4px; }
-        .stat-item.improved .value { color: #53cf60; }
-        .stat-item.regressed .value { color: #cf5353; }
-        .verify-history-table .trophy { color: #ffd700; font-size: 14px; margin-right: 4px; }
+        .stat-item.improved .value { color: var(--success); }
+        .stat-item.regressed .value { color: var(--danger); }
+        .verify-history-table .trophy { color: #ffd700; font-size: 14px; margin-right: 4px; filter: drop-shadow(0 0 6px rgba(255,215,0,0.4)); }
         .verify-history-table tr.top-row td { background: rgba(255,215,0,0.05); }
-        .loading { text-align: center; color: #666; padding: 20px; }
-        .error { text-align: center; color: #cf5353; padding: 20px; }
-        .form-container { display: none; background: #12121f; border-radius: 8px; padding: 20px; margin-top: 15px; }
+        .loading { text-align: center; color: var(--text-muted); padding: 20px; }
+        .error { text-align: center; color: var(--danger); padding: 20px; }
+        /* DESIGN PASS 1: form / inputs — focus 시 cyan ring */
+        .form-container { display: none; background: rgba(14,14,28,0.6); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 20px; margin-top: 15px; }
         .form-container.show { display: block; }
         .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 12px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 6px; color: #e0e0e0; font-size: 14px; }
+        .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 9px 12px;
+            background: rgba(7,7,15,0.6);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-soft);
+            background: rgba(7,7,15,0.85);
+        }
         .form-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-save { background: #0f3460; color: #00d4ff; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; }
-        .btn-cancel { background: #2a2a4a; color: #888; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; }
-        .btn-add { background: #0f3460; color: #00d4ff; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; float: right; margin-top: -30px; }
-        .toggle-btn { padding: 8px 16px; background: #1a1a2e; border: 1px solid #333; color: #888; border-radius: 20px; cursor: pointer; transition: all 0.2s; user-select: none; display: inline-block; }
-        .toggle-btn.active { background: #00d4ff; color: #000; border-color: #00d4ff; font-weight: bold; }
+        .btn-save { background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(94,157,255,0.15)); color: var(--accent-cyan); padding: 9px 22px; border: 1px solid rgba(0,212,255,0.35); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,0.25); }
+        .btn-cancel { background: rgba(255,255,255,0.05); color: var(--text-secondary); padding: 9px 22px; border: 1px solid var(--border-soft); border-radius: var(--radius-sm); cursor: pointer; font-weight: 500; transition: background 0.18s var(--ease); }
+        .btn-cancel:hover { background: rgba(255,255,255,0.08); }
+        .btn-add { background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(94,157,255,0.15)); color: var(--accent-cyan); padding: 7px 16px; border: 1px solid rgba(0,212,255,0.35); border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 600; float: right; margin-top: -30px; transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+        .btn-add:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,0.25); }
+        /* DESIGN PASS 1: toggle-btn — 비활성 더 차분히, 활성 시 cyan glow */
+        .toggle-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-soft);
+            color: var(--text-muted);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s var(--ease);
+            user-select: none;
+            display: inline-block;
+        }
+        .toggle-btn:hover { border-color: var(--border-mid); color: var(--text-secondary); }
+        .toggle-btn.active {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #000;
+            border-color: transparent;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(0,212,255,0.32);
+        }
         .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        .input-row label { color: #888; font-size: 0.85rem; display: block; margin-bottom: 4px; }
-        .input-row input { width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #333; color: #fff; border-radius: 5px; }
-        .run-btn { padding: 10px 30px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        /* NEW UI 20260520: AI 예측 / AI 추천 탭 전용 스타일 */
-        .ai-header { padding: 20px 40px 10px; }
-        .ai-header h1 { color: #00d4ff; font-size: 22px; margin-bottom: 6px; }
-        .ai-header .subtitle { color: #aaa; font-size: 14px; margin-bottom: 4px; }
-        .ai-header .disclaimer { color: #ffa502; font-size: 12px; }
-        .result-headline { display: flex; align-items: center; gap: 20px; padding: 20px; background: #12121f; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .direction-label { font-size: 26px; font-weight: bold; padding: 6px 16px; border-radius: 8px; }
-        .direction-up { color: #53cf60; background: rgba(83,207,96,0.1); }
-        .direction-down { color: #cf5353; background: rgba(207,83,83,0.1); }
-        .direction-hold { color: #ffa502; background: rgba(255,165,2,0.1); }
+        .input-row label { color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+        .input-row input { width: 100%; padding: 9px 12px; background: rgba(7,7,15,0.6); border: 1px solid var(--border-soft); color: var(--text-primary); border-radius: var(--radius-sm); font-family: inherit; transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+        .input-row input:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px var(--accent-cyan-soft); }
+        .run-btn { padding: 11px 32px; border: none; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; font-size: 14px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #000; box-shadow: 0 6px 20px rgba(0,212,255,0.25); transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+        .run-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,212,255,0.35); }
+        /* NEW UI 20260520: AI 예측 / AI 추천 탭 전용 스타일 — DESIGN PASS 1 토큰 적용 */
+        .ai-header { padding: 24px 40px 10px; }
+        .ai-header h1 {
+            font-size: 22px; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+        .ai-header .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 4px; }
+        .ai-header .disclaimer { color: var(--warning); font-size: 12px; }
+        /* DESIGN PASS 1: result-headline — 카드와 톤 통일 + soft shadow */
+        .result-headline {
+            display: flex; align-items: center; gap: 20px;
+            padding: 22px;
+            background: linear-gradient(180deg, rgba(14,14,28,0.7), rgba(10,10,22,0.7));
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-card);
+            margin-bottom: 15px; flex-wrap: wrap;
+            box-shadow: var(--shadow-card);
+        }
+        .direction-label { font-size: 26px; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-sm); letter-spacing: -0.02em; }
+        .direction-up { color: var(--success); background: rgba(76,217,123,0.12); border: 1px solid rgba(76,217,123,0.3); }
+        .direction-down { color: var(--danger); background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.3); }
+        .direction-hold { color: var(--warning); background: rgba(255,169,77,0.12); border: 1px solid rgba(255,169,77,0.3); }
         .confidence-block { display: flex; flex-direction: column; gap: 4px; }
-        .confidence-stars { font-size: 18px; letter-spacing: 2px; color: #00d4ff; }
-        .confidence-text { font-size: 13px; color: #aaa; }
-        .result-comment { background: #12121f; border-left: 3px solid #00d4ff; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; }
-        .result-comment strong { color: #00d4ff; display: block; margin-bottom: 6px; font-size: 13px; }
-        .result-comment p { color: #ddd; font-size: 14px; line-height: 1.5; }
-        details.pred-details { background: #12121f; border-radius: 6px; padding: 10px 16px; }
-        details.pred-details summary { cursor: pointer; color: #00d4ff; font-size: 13px; }
+        .confidence-stars { font-size: 18px; letter-spacing: 2px; color: var(--accent-cyan); text-shadow: 0 0 12px rgba(0,212,255,0.4); }
+        .confidence-text { font-size: 13px; color: var(--text-secondary); }
+        /* DESIGN PASS 1: result-comment — 보더 강조 라인 cyan glow */
+        .result-comment {
+            background: linear-gradient(180deg, rgba(14,14,28,0.7), rgba(10,10,22,0.7));
+            border: 1px solid var(--border-soft);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 15px;
+            box-shadow: 0 0 0 1px rgba(0,212,255,0.04);
+        }
+        .result-comment strong { color: var(--accent-cyan); display: block; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+        .result-comment p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+        details.pred-details { background: rgba(14,14,28,0.5); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 12px 18px; }
+        details.pred-details summary { cursor: pointer; color: var(--accent-cyan); font-size: 13px; font-weight: 500; }
         details.pred-details ul { margin-top: 10px; padding-left: 20px; }
-        details.pred-details li { color: #aaa; font-size: 13px; line-height: 1.7; }
+        details.pred-details li { color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
         .radio-group { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-        .radio-group > label:first-child { color: #888; font-size: 12px; margin-right: 6px; }
-        .radio-group label { color: #ddd; font-size: 13px; cursor: pointer; }
-        .radio-group input[type=radio] { margin-right: 4px; accent-color: #00d4ff; }
-        .rec-card { background: #12121f; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+        .radio-group > label:first-child { color: var(--text-muted); font-size: 11px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .radio-group label { color: var(--text-secondary); font-size: 13px; cursor: pointer; }
+        .radio-group input[type=radio] { margin-right: 4px; accent-color: var(--accent-cyan); }
+        /* DESIGN PASS 1: rec-card — 카드 elevation 통일 + 랭크별 colored glow */
+        .rec-card {
+            background: linear-gradient(180deg, rgba(14,14,28,0.7), rgba(10,10,22,0.7));
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-card);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.25s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+        }
+        .rec-card:hover { border-color: var(--border-mid); transform: translateY(-2px); box-shadow: var(--shadow-pop); }
         .rec-card header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
         .rec-card .rank { font-size: 20px; }
-        .rec-card .ticker { font-size: 15px; color: #00d4ff; font-weight: bold; flex: 1; min-width: 200px; }
-        .rec-card .score { font-size: 13px; color: #ffa502; }
-        .rec-card .reason { color: #ccc; font-size: 13px; line-height: 1.5; }
-        .rec-card.rank-1 { border-left: 3px solid #00d4ff; }
-        .rec-card.rank-2 { border-left: 3px solid #53cf60; }
-        .rec-card.rank-3 { border-left: 3px solid #ffa502; }
-        .agent-summary { background: #12121f; border-left: 3px solid #a55eea; padding: 12px 16px; border-radius: 6px; margin-top: 15px; }
-        .agent-summary strong { color: #a55eea; display: block; margin-bottom: 6px; font-size: 13px; }
-        .agent-summary p { color: #ddd; font-size: 14px; line-height: 1.5; }
-        .loading-state { text-align: center; padding: 30px; color: #888; font-size: 14px; }
+        .rec-card .ticker { font-size: 15px; color: var(--accent-cyan); font-weight: 700; flex: 1; min-width: 200px; letter-spacing: -0.01em; }
+        .rec-card .score { font-size: 13px; color: var(--warning); font-weight: 600; }
+        .rec-card .reason { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+        .rec-card.rank-1 { border-left: 3px solid var(--accent-cyan); box-shadow: var(--shadow-card), -8px 0 24px -12px var(--accent-cyan); }
+        .rec-card.rank-2 { border-left: 3px solid var(--success); box-shadow: var(--shadow-card), -8px 0 24px -12px var(--success); }
+        .rec-card.rank-3 { border-left: 3px solid var(--warning); box-shadow: var(--shadow-card), -8px 0 24px -12px var(--warning); }
+        /* 20260601: 5종목 카드에 심층 분석 인라인 통합. 기본 접힘 + 클릭/호버로 펼침 */
+        .rec-card .deep { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-soft);
+            max-height: 8em; overflow: hidden; position: relative; cursor: pointer; transition: max-height 0.4s ease; }
+        .rec-card .deep::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 2.4em;
+            background: linear-gradient(to bottom, transparent, var(--bg-1) 90%); pointer-events: none; opacity: 1; transition: opacity 0.25s; }
+        .rec-card .deep.expanded { max-height: 4000px; }
+        .rec-card .deep.expanded::after { opacity: 0 !important; height: 0; }
+        .rec-card:hover .deep { max-height: 4000px; }
+        .rec-card:hover .deep::after { opacity: 0 !important; height: 0; }
+        .rec-card .deep .toggle-hint { color: var(--accent-cyan); font-size: 11px; margin-top: 10px; display: inline-block; }
+        .rec-card .deep h3, .rec-card .deep h4 { color: var(--accent-cyan); font-size: 14px; margin: 12px 0 6px; font-weight: 600; }
+        .rec-card .deep strong { color: var(--text-primary); }
+        .rec-card .deep br + br { display: block; content: ""; margin-top: 6px; }
+        /* 추가 후보 45개 표 */
+        .others-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .others-table th, .others-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border-soft); font-size: 12px; }
+        .others-table th { color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .others-table td { color: var(--text-secondary); }
+        /* FIX 20260602: th.num 도 우측 정렬 */
+        .others-table th.num, .others-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .others-table .pos { color: var(--success); font-weight: 500; }
+        .others-table .neg { color: var(--danger); font-weight: 500; }
+        .others-table tbody tr { transition: background 0.18s var(--ease); }
+        .others-table tr:hover td { background: rgba(255,255,255,0.025); }
+        /* DESIGN PASS 1: agent-summary — purple accent 라인 */
+        .agent-summary {
+            background: linear-gradient(180deg, rgba(14,14,28,0.7), rgba(10,10,22,0.7));
+            border: 1px solid var(--border-soft);
+            border-left: 3px solid var(--accent-purple);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            margin-top: 15px;
+            box-shadow: 0 0 0 1px rgba(165,94,234,0.04);
+        }
+        .agent-summary strong { color: var(--accent-purple); display: block; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+        .agent-summary p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+        .loading-state { text-align: center; padding: 36px; color: var(--text-muted); font-size: 14px; }
         .loading-state .spinner { font-size: 28px; display: inline-block; animation: spin 1.5s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         /* STEP4 20260527: AI 추천 로딩 진행률 + 예시칩 + 심층 리포트 */
-        .loading-sub { font-size: 12px; color: #888; margin-top: 6px; }
-        .progress-track { width: 100%; max-width: 420px; height: 10px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 6px; margin: 14px auto 6px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a55eea, #00d4ff); border-radius: 6px; transition: width 0.6s ease; }
+        .loading-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+        .progress-track { width: 100%; max-width: 420px; height: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-soft); border-radius: 999px; margin: 14px auto 6px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan)); border-radius: 999px; transition: width 0.6s ease; box-shadow: 0 0 16px rgba(0,212,255,0.4); }
         .progress-steps { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        .progress-steps .pstep { font-size: 11px; color: #666; padding: 3px 10px; border-radius: 12px; background: #1a1a2e; border: 1px solid #2a2a4a; }
-        .progress-steps .pstep.active { color: #00d4ff; border-color: #00d4ff; font-weight: bold; }
-        .progress-steps .pstep.done { color: #53cf60; border-color: #53cf60; }
+        .progress-steps .pstep { font-size: 11px; color: var(--text-muted); padding: 4px 11px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-soft); font-weight: 500; transition: all 0.18s var(--ease); }
+        .progress-steps .pstep.active { color: var(--accent-cyan); border-color: rgba(0,212,255,0.5); background: rgba(0,212,255,0.08); font-weight: 600; }
+        .progress-steps .pstep.done { color: var(--success); border-color: rgba(76,217,123,0.5); background: rgba(76,217,123,0.08); }
         .example-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-        .report-content { color: #ccc; font-size: 13px; line-height: 1.7; margin-top: 10px; max-height: 360px; overflow-y: auto; }
-        .report-content h3 { color: #00d4ff; font-size: 14px; margin: 12px 0 4px; }
-        .report-content strong { color: #fff; }
+        .report-content { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-top: 10px; max-height: 360px; overflow-y: auto; padding-right: 6px; }
+        .report-content h3 { color: var(--accent-cyan); font-size: 14px; margin: 12px 0 4px; font-weight: 600; }
+        .report-content strong { color: var(--text-primary); }
         .ai-tab-grid { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 0 40px 20px; }
         @media (max-width: 700px) {
             .ai-header { padding: 16px 20px 8px; }
@@ -120,36 +342,528 @@
         .verify-section { margin-top: 20px; border-top: 2px dashed #2a2a4a; padding-top: 20px; }
         .verify-section .academic-badge { display: inline-block; background: #2a2a4a; color: #aaa; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
         .autocomplete-wrap { position: relative; }
-        .autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; }
+        /* DESIGN PASS 1: autocomplete — 카드와 톤 통일 + soft shadow */
+        .autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-elev); border: 1px solid var(--border-soft); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); max-height: 220px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
         .autocomplete-dropdown.show { display: block; }
-        .autocomplete-item { padding: 8px 12px; cursor: pointer; color: #ddd; font-size: 13px; border-bottom: 1px solid #2a2a4a; }
+        .autocomplete-item { padding: 10px 14px; cursor: pointer; color: var(--text-secondary); font-size: 13px; border-bottom: 1px solid var(--border-soft); transition: background 0.15s var(--ease); }
         .autocomplete-item:last-child { border-bottom: none; }
-        .autocomplete-item:hover, .autocomplete-item.active { background: #0f3460; color: #00d4ff; }
-        .autocomplete-item .ac-code { color: #00d4ff; font-weight: bold; margin-right: 8px; }
-        .autocomplete-item .ac-name { color: #ccc; }
-        .autocomplete-item .ac-market { color: #888; font-size: 11px; float: right; }
+        .autocomplete-item:hover, .autocomplete-item.active { background: rgba(0,212,255,0.08); color: var(--accent-cyan); }
+        .autocomplete-item .ac-code { color: var(--accent-cyan); font-weight: 700; margin-right: 8px; font-variant-numeric: tabular-nums; }
+        .autocomplete-item .ac-name { color: var(--text-secondary); }
+        .autocomplete-item .ac-market { color: var(--text-muted); font-size: 11px; float: right; }
         .verify-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
-        .verify-stat { background: #12121f; padding: 12px; border-radius: 8px; text-align: center; }
-        .verify-stat .vs-value { font-size: 22px; font-weight: bold; color: #00d4ff; }
-        .verify-stat .vs-label { font-size: 11px; color: #888; margin-top: 4px; }
-        .verify-stat.improved .vs-value { color: #53cf60; }
-        .verify-stat.regressed .vs-value { color: #cf5353; }
-        .period-label { display: inline-block; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: bold; margin: 10px 0; }
-        .period-label.train { background: rgba(255,165,2,0.15); color: #ffa502; border: 1px solid #ffa502; }
+        .verify-stat {
+            background: linear-gradient(180deg, rgba(14,14,28,0.6), rgba(10,10,22,0.6));
+            border: 1px solid var(--border-soft);
+            padding: 14px;
+            border-radius: 10px;
+            text-align: center;
+            transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+        }
+        .verify-stat:hover { border-color: var(--border-mid); transform: translateY(-2px); }
+        .verify-stat .vs-value { font-size: 22px; font-weight: 700; color: var(--accent-cyan); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .verify-stat .vs-label { font-size: 11px; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .verify-stat.improved .vs-value { color: var(--success); }
+        .verify-stat.regressed .vs-value { color: var(--danger); }
+        .period-label { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; margin: 10px 0; letter-spacing: 0.02em; }
+        .period-label.train { background: rgba(255,169,77,0.12); color: var(--warning); border: 1px solid rgba(255,169,77,0.35); }
         /* FIX 20260523: 학습/평가 모두 80/20 통일 → .val 라벨/세그먼트 제거 */
-        .period-label.test { background: rgba(83,207,96,0.15); color: #53cf60; border: 1px solid #53cf60; }
-        .period-label.mixed { background: rgba(207,83,83,0.15); color: #cf5353; border: 1px solid #cf5353; }
-        .split-bar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin-top: 8px; font-size: 11px; }
-        .split-bar > div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
-        .split-bar .seg-train { background: #ffa502; flex: 80; }
-        .split-bar .seg-test { background: #53cf60; flex: 20; }
-        .split-dates { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px; }
-        .baseline-compare { background: #12121f; border-radius: 8px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #ddd; }
-        .baseline-compare .bc-improve { font-weight: bold; }
+        .period-label.test { background: rgba(76,217,123,0.12); color: var(--success); border: 1px solid rgba(76,217,123,0.35); }
+        .period-label.mixed { background: rgba(255,107,107,0.12); color: var(--danger); border: 1px solid rgba(255,107,107,0.35); }
+        .split-bar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin-top: 8px; font-size: 11px; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset; }
+        .split-bar > div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+        .split-bar .seg-train { background: linear-gradient(135deg, var(--warning), #ff8a3d); flex: 80; }
+        .split-bar .seg-test { background: linear-gradient(135deg, var(--success), #2fb05e); flex: 20; }
+        .split-dates { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+        .baseline-compare { background: linear-gradient(180deg, rgba(14,14,28,0.6), rgba(10,10,22,0.6)); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 14px 18px; margin-top: 10px; font-size: 13px; color: var(--text-secondary); }
+        .baseline-compare .bc-improve { font-weight: 700; }
+
+        /* ========================================================
+           DESIGN PASS 2 — 모션 & 마이크로 인터랙션 (20260602)
+           목표: 정적인 다크 UI 에 살아있는 듯한 미세한 흐름. 배치는 불변.
+           원칙: prefers-reduced-motion 시 모두 끄기. JS 없이 CSS 만.
+           ======================================================== */
+        @keyframes qm-fade-up {
+            0%   { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes qm-fade-in {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes qm-shimmer {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes qm-pulse-glow {
+            0%, 100% { opacity: 0.55; transform: scale(1); }
+            50%      { opacity: 1.0;  transform: scale(1.04); }
+        }
+        @keyframes qm-ring-spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes qm-breathe {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.0); }
+            50%      { box-shadow: 0 0 0 4px rgba(0,212,255,0.08); }
+        }
+
+        /* 1) 탭 콘텐츠 진입 — 카드들이 stagger 로 부드럽게 떠오름. */
+        .tab-content.active > * {
+            animation: qm-fade-up 0.55s var(--ease) both;
+        }
+        .tab-content.active > *:nth-child(1) { animation-delay: 0.02s; }
+        .tab-content.active > *:nth-child(2) { animation-delay: 0.08s; }
+        .tab-content.active > *:nth-child(3) { animation-delay: 0.14s; }
+        .tab-content.active > *:nth-child(4) { animation-delay: 0.20s; }
+        .tab-content.active > *:nth-child(5) { animation-delay: 0.26s; }
+        .tab-content.active > *:nth-child(6) { animation-delay: 0.32s; }
+        .tab-content.active > *:nth-child(n+7) { animation-delay: 0.38s; }
+        /* AI 예측/추천 탭은 .ai-tab-grid 안에 카드 — 자식까지 한 단계 들어가 stagger */
+        .ai-tab-grid > * {
+            animation: qm-fade-up 0.55s var(--ease) both;
+        }
+        .ai-tab-grid > *:nth-child(1) { animation-delay: 0.05s; }
+        .ai-tab-grid > *:nth-child(2) { animation-delay: 0.15s; }
+        .ai-tab-grid > *:nth-child(3) { animation-delay: 0.25s; }
+        .ai-tab-grid > *:nth-child(n+4) { animation-delay: 0.35s; }
+
+        /* 2) rec-card 안 5종목 — 더 짧은 stagger. */
+        #recCards > .rec-card,
+        #recCards .rec-card {
+            animation: qm-fade-up 0.5s var(--ease) both;
+        }
+        #recCards .rec-card:nth-child(1) { animation-delay: 0.02s; }
+        #recCards .rec-card:nth-child(2) { animation-delay: 0.10s; }
+        #recCards .rec-card:nth-child(3) { animation-delay: 0.18s; }
+        #recCards .rec-card:nth-child(4) { animation-delay: 0.26s; }
+        #recCards .rec-card:nth-child(5) { animation-delay: 0.34s; }
+
+        /* 3) 카드 hover 시 radial sheen (light leak).
+              overflow:hidden 안 씀 — autocomplete dropdown 같이 카드 밖으로 나와야 하는
+              요소를 잘라먹지 않도록. ::before 는 inset:0 + border-radius inherit 로
+              스스로 카드 모양에 맞게 클립됨. */
+        .card { position: relative; isolation: isolate; }
+        .card::before {
+            content: ""; position: absolute; inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at 30% 0%, rgba(0,212,255,0.08), transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(165,94,234,0.06), transparent 55%);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s var(--ease);
+            z-index: -1;
+        }
+        .card:hover::before { opacity: 1; }
+
+        /* 4) rec-card sheen + 1위는 breathe 글로우 */
+        .rec-card { position: relative; isolation: isolate; }
+        .rec-card::before {
+            content: ""; position: absolute; inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 0% 0%, rgba(0,212,255,0.08), transparent 55%);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s var(--ease);
+            z-index: -1;
+        }
+        .rec-card:hover::before { opacity: 1; }
+        .rec-card.rank-1 { animation: qm-breathe 4s ease-in-out infinite; }
+
+        /* 5) 헤더 상태 LED — 깜빡임 (살아있는 신호) */
+        .header .status::before { animation: qm-pulse-glow 2s ease-in-out infinite; }
+
+        /* 6) confidence-stars — 별빛 펄스 */
+        .confidence-stars { animation: qm-pulse-glow 3s ease-in-out infinite; }
+
+        /* 7) progress-fill shimmer — 채워지는 중 빛이 흐름 */
+        .progress-track { position: relative; }
+        .progress-fill { position: relative; overflow: hidden; }
+        .progress-fill::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: translateX(-100%);
+            animation: qm-shimmer 1.8s ease-in-out infinite;
+        }
+
+        /* 8) 스피너 — 이모지 ⏳ 옆에 CSS ring 도 같이 띄움 (.spinner 가 이모지면 폰트 그대로) */
+        .qm-ring-spinner {
+            display: inline-block; width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 3px solid rgba(0,212,255,0.18);
+            border-top-color: var(--accent-cyan);
+            animation: qm-ring-spin 0.9s linear infinite;
+            vertical-align: middle;
+            box-shadow: 0 0 16px rgba(0,212,255,0.3);
+        }
+        /* 기존 이모지 spinner 도 약간 떨림 → 안정적 회전으로 통일 */
+        .loading-state .spinner { animation: qm-ring-spin 1.5s linear infinite; transform-origin: 50% 50%; display: inline-block; }
+
+        /* 9) 버튼·토글 ripple-ish — active 누르는 순간 살짝 가라앉음 */
+        .btn:active, .run-btn:active, .btn-save:active, .btn-cancel:active, .btn-add:active, .toggle-btn:active {
+            transform: translateY(0) scale(0.97);
+            transition: transform 0.08s ease-out;
+        }
+
+        /* 10) 탭 버튼 클릭 시 살짝 들어갔다 나옴 */
+        .tab-btn:active { transform: scale(0.97); transition: transform 0.08s ease-out; }
+
+        /* 11) form input focus — ring 이 들어올 때 살짝 위로 */
+        .form-group input:focus, .form-group select:focus, .input-row input:focus {
+            transform: translateY(-1px);
+        }
+
+        /* 12) badge — 활성 배지 미세한 펄스 (강조용) */
+        .badge-active { animation: qm-pulse-glow 3s ease-in-out infinite; }
+
+        /* 13) link/hover 가능한 항목 — chip / pstep 도 hover scale */
+        .progress-steps .pstep,
+        .example-chips > * {
+            transition: transform 0.18s var(--ease), background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
+        }
+        .progress-steps .pstep:hover,
+        .example-chips > *:hover { transform: translateY(-1px); }
+
+        /* 14) skeleton shimmer 클래스 — 로딩 중 카드용 (필요 시 .qm-skeleton 만 붙이면 됨) */
+        .qm-skeleton {
+            position: relative; overflow: hidden;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+            background-size: 200% 100%;
+            animation: qm-shimmer 1.5s ease-in-out infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        /* ========================================================
+           DESIGN PASS 3 — 차트 컨테이너 (20260602)
+           ======================================================== */
+        /* canvas 자체에 살짝의 elevation 과 grid 배경.
+           Chart.js 가 canvas 내부를 다시 그릴 때마다 자체 배경이 깔리므로
+           실제 grid 는 canvas 가 투명한 부분에만 보임 → 캔버스 가장자리 액센트 역할. */
+        canvas {
+            border-radius: 10px;
+            background:
+                linear-gradient(180deg, rgba(7,7,15,0.55), rgba(10,10,22,0.45)),
+                repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px),
+                repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px);
+            transition: box-shadow 0.3s var(--ease);
+        }
+        canvas:hover { box-shadow: 0 8px 28px rgba(0,212,255,0.10); }
+        /* Plotly 그래프 컨테이너도 동일한 컨셉 */
+        #simPatternChart {
+            border-radius: 10px;
+            background:
+                linear-gradient(180deg, rgba(7,7,15,0.55), rgba(10,10,22,0.45)),
+                repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px),
+                repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px);
+            padding: 8px;
+            transition: box-shadow 0.3s var(--ease);
+        }
+        #simPatternChart:hover { box-shadow: 0 8px 28px rgba(0,212,255,0.10); }
+        /* Plotly modebar(우상단 아이콘 모음) 가끔 노출되면 톤 맞춤 */
+        .modebar-btn path { fill: var(--text-muted) !important; }
+        .modebar-btn:hover path { fill: var(--accent-cyan) !important; }
+
+        /* ========================================================
+           DESIGN PASS 4 — 카운트업 & 탭 인디케이터 글라이드 (20260602)
+           ======================================================== */
+        /* 탭 인디케이터: .tab-btn 마다 따로 있던 border-bottom 대신
+           .tab-nav 위에 떠 있는 단일 바가 탭 사이를 부드럽게 이동.
+           위치/너비는 JS 가 --qm-tab-left / --qm-tab-width 변수로 주입. */
+        .tab-nav {
+            position: sticky; /* 이미 위에서 sticky 지정됨 — 안정성용 재선언 */
+            --qm-tab-left: 0px;
+            --qm-tab-width: 0px;
+        }
+        .tab-nav::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: var(--qm-tab-left);
+            width: var(--qm-tab-width);
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 999px;
+            box-shadow: 0 0 14px rgba(0,212,255,0.45);
+            transition: left 0.45s var(--ease), width 0.45s var(--ease);
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* 첫 페인트 / 리사이즈 직후엔 점프 — 트랜지션 없는 즉시 위치 잡기용 클래스 */
+        .tab-nav.qm-no-anim::after { transition: none; }
+        /* 개별 탭 버튼의 border-bottom 은 글라이딩 바가 대신 → 숨김 */
+        .tab-btn,
+        .tab-btn.active { border-bottom-color: transparent; }
+        /* 호버 시 살짝 비치는 hint (글라이딩 바와 다른 톤) */
+        .tab-btn:hover::after {
+            content: "";
+            position: absolute;
+            bottom: -1px; left: 22px; right: 22px;
+            height: 2px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            transition: opacity 0.2s var(--ease);
+        }
+        .tab-btn { position: relative; }
+        .tab-btn.active::after { display: none; }  /* 활성 탭은 글라이딩 바만 보이게 */
+
+        /* 카운트업 중인 숫자에 살짝의 점프-인 → 더 살아있는 느낌 */
+        .stat-item .value.qm-num-running,
+        .verify-stat .vs-value.qm-num-running {
+            text-shadow: 0 0 18px rgba(0,212,255,0.18);
+        }
+
+        /* ========================================================
+           DESIGN PASS 5 — Hero stat cards + sparkline (20260602)
+           ======================================================== */
+        /* 시스템 요약 4 카드를 hero 사이즈로. layout 자체는 4-col grid 유지 (배치 불변). */
+        #tab-home .stats-grid { gap: 16px; }
+        #tab-home .stats-grid .stat-item {
+            padding: 22px 18px 16px;
+            text-align: left;             /* 좌측 정렬 — 더 데이터보드스럽다 */
+            position: relative;
+            overflow: hidden;
+        }
+        #tab-home .stats-grid .stat-item .value {
+            font-size: 32px;
+            letter-spacing: -0.025em;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        #tab-home .stats-grid .stat-item .label {
+            text-align: left;
+            font-size: 11px;
+            margin-top: 8px;
+            letter-spacing: 0.05em;
+        }
+        #tab-home .stats-grid .stat-item .sublabel {
+            text-align: left;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+        /* 카드 우상단에 아이콘 spot — ::after 로 추가 (DOM 변경 X) */
+        #tab-home .stats-grid .stat-item::after {
+            content: attr(data-icon);
+            position: absolute;
+            top: 14px; right: 16px;
+            font-size: 14px;
+            opacity: 0.5;
+            letter-spacing: 0.1em;
+        }
+        /* Sparkline 슬롯 — JS 가 svg 삽입. 비어있으면 자리만. */
+        .qm-sparkline {
+            display: block;
+            width: 100%;
+            height: 36px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.4s var(--ease);
+        }
+        .qm-sparkline.qm-on { opacity: 1; }
+        .qm-sparkline path.qm-sl-line {
+            fill: none;
+            stroke: var(--accent-cyan);
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 6px rgba(0,212,255,0.35));
+        }
+        .qm-sparkline path.qm-sl-area {
+            fill: url(#qm-sl-grad);
+            opacity: 0.55;
+        }
+        .qm-sparkline .qm-sl-dot {
+            fill: var(--accent-cyan);
+            filter: drop-shadow(0 0 6px rgba(0,212,255,0.6));
+        }
+        .stat-item.improved .qm-sparkline path.qm-sl-line { stroke: var(--success); filter: drop-shadow(0 0 6px rgba(76,217,123,0.4)); }
+        .stat-item.improved .qm-sparkline .qm-sl-dot { fill: var(--success); }
+        .stat-item.regressed .qm-sparkline path.qm-sl-line { stroke: var(--danger); filter: drop-shadow(0 0 6px rgba(255,107,107,0.4)); }
+        .stat-item.regressed .qm-sparkline .qm-sl-dot { fill: var(--danger); }
+
+        /* 빈 상태 (데이터 없음) — em dash + dim */
+        .stat-item.qm-empty .value { color: var(--text-muted); font-weight: 500; }
+        .stat-item.qm-empty::after { opacity: 0.25; }
+
+        /* ========================================================
+           DESIGN PASS 6 — Skeleton / Empty / Error states (20260602)
+           ======================================================== */
+        /* Skeleton rec-card — AI 추천 로딩 중 (5개 placeholder) */
+        .qm-rec-skeleton {
+            background: linear-gradient(180deg, rgba(14,14,28,0.5), rgba(10,10,22,0.5));
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-card);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            min-height: 110px;
+        }
+        .qm-rec-skeleton .qm-sk-row {
+            height: 14px;
+            border-radius: 4px;
+            margin: 6px 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 100%);
+            background-size: 200% 100%;
+            animation: qm-shimmer 1.4s ease-in-out infinite;
+        }
+        .qm-rec-skeleton .qm-sk-row.qm-sk-title { height: 18px; width: 40%; margin-bottom: 14px; }
+        .qm-rec-skeleton .qm-sk-row.qm-sk-w-80 { width: 80%; }
+        .qm-rec-skeleton .qm-sk-row.qm-sk-w-60 { width: 60%; }
+        .qm-rec-skeleton .qm-sk-row.qm-sk-w-90 { width: 90%; }
+
+        /* Empty state — 데이터 없을 때 friendlier */
+        .qm-empty-state {
+            text-align: center; padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .qm-empty-state .qm-empty-art {
+            width: 72px; height: 72px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(0,212,255,0.18), transparent 65%),
+                radial-gradient(circle at 50% 50%, rgba(165,94,234,0.12), transparent 75%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+            animation: qm-pulse-glow 3s ease-in-out infinite;
+        }
+        .qm-empty-state .qm-empty-title { color: var(--text-secondary); font-size: 15px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.01em; }
+        .qm-empty-state .qm-empty-hint { font-size: 13px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+        .qm-empty-state .qm-empty-hint kbd {
+            display: inline-block;
+            padding: 2px 7px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-soft);
+            border-radius: 4px;
+            color: var(--accent-cyan);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Error state — 데이터 로드 실패 시 친절한 카드 */
+        .qm-error-state {
+            text-align: center; padding: 30px 24px;
+            background: linear-gradient(180deg, rgba(255,107,107,0.06), rgba(255,107,107,0.02));
+            border: 1px solid rgba(255,107,107,0.2);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+        }
+        .qm-error-state .qm-error-icon {
+            font-size: 26px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        .qm-error-state .qm-error-title { color: var(--danger); font-weight: 600; margin-bottom: 4px; }
+        .qm-error-state .qm-error-msg { font-size: 13px; line-height: 1.6; word-break: break-word; }
+        .qm-error-state .qm-error-retry {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 7px 16px;
+            background: rgba(255,107,107,0.12);
+            color: var(--danger);
+            border: 1px solid rgba(255,107,107,0.3);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.18s var(--ease), transform 0.18s var(--ease);
+        }
+        .qm-error-state .qm-error-retry:hover { background: rgba(255,107,107,0.2); transform: translateY(-1px); }
+
+        /* ========================================================
+           DESIGN PASS 7 — Toast 알림 (20260602)
+           ======================================================== */
+        #qm-toast-root {
+            position: fixed;
+            top: 84px; right: 24px;
+            z-index: 9999;
+            display: flex; flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 360px;
+        }
+        .qm-toast {
+            pointer-events: auto;
+            background: linear-gradient(180deg, rgba(20,20,42,0.92), rgba(14,14,28,0.92));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-mid);
+            border-radius: var(--radius-card);
+            padding: 12px 16px 12px 14px;
+            min-width: 240px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset;
+            color: var(--text-primary);
+            font-size: 13px;
+            line-height: 1.5;
+            display: flex; align-items: flex-start; gap: 12px;
+            transform: translateX(420px);
+            opacity: 0;
+            animation: qm-toast-in 0.45s var(--ease) forwards;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes qm-toast-in {
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes qm-toast-out {
+            to { transform: translateX(420px); opacity: 0; }
+        }
+        .qm-toast.qm-out { animation: qm-toast-out 0.35s var(--ease) forwards; }
+        .qm-toast .qm-toast-icon {
+            font-size: 18px;
+            line-height: 1;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+        .qm-toast .qm-toast-body { flex: 1; min-width: 0; }
+        .qm-toast .qm-toast-title { font-weight: 600; color: var(--text-primary); margin-bottom: 2px; font-size: 13px; }
+        .qm-toast .qm-toast-msg { color: var(--text-secondary); font-size: 12px; word-break: break-word; }
+        .qm-toast .qm-toast-close {
+            background: transparent; border: none; cursor: pointer;
+            color: var(--text-muted); font-size: 16px;
+            padding: 0 4px; margin-left: 4px;
+            transition: color 0.18s var(--ease);
+            line-height: 1; align-self: flex-start;
+        }
+        .qm-toast .qm-toast-close:hover { color: var(--text-primary); }
+        .qm-toast .qm-toast-bar {
+            position: absolute; bottom: 0; left: 0; height: 2px;
+            background: var(--accent-cyan);
+            animation: qm-toast-bar linear forwards;
+        }
+        @keyframes qm-toast-bar { from { width: 100%; } to { width: 0%; } }
+        /* 타입별 액센트 */
+        .qm-toast.qm-toast-success { border-left: 3px solid var(--success); }
+        .qm-toast.qm-toast-success .qm-toast-bar { background: var(--success); }
+        .qm-toast.qm-toast-error   { border-left: 3px solid var(--danger);  }
+        .qm-toast.qm-toast-error   .qm-toast-bar { background: var(--danger); }
+        .qm-toast.qm-toast-warning { border-left: 3px solid var(--warning); }
+        .qm-toast.qm-toast-warning .qm-toast-bar { background: var(--warning); }
+        .qm-toast.qm-toast-info    { border-left: 3px solid var(--accent-cyan); }
+
+        /* 15) reduced-motion 사용자 존중 — 모든 애니/트랜지션 끄기 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- NEW 20260531: 패턴 시뮬레이터 탭 차트용 Plotly (AItr_simulator 원본 시각화 호환) -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
+<!-- PASS 5: sparkline 용 SVG gradient 정의 (한 번만, 전역) -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="qm-sl-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(0,212,255,0.4)"/>
+            <stop offset="100%" stop-color="rgba(0,212,255,0)"/>
+        </linearGradient>
+    </defs>
+</svg>
+<!-- PASS 7: toast 컨테이너 (페이지 우상단) -->
+<div id="qm-toast-root" aria-live="polite" aria-atomic="true"></div>
 <div class="header">
     <h1>QuantMaster Dashboard</h1>
     <div class="status" id="serverStatus">서버 연결 확인 중...</div>
@@ -165,6 +879,8 @@
     <!-- NEW UI 20260520: AI 예측 + AI 추천 탭 버튼 신규 추가 -->
     <button class="tab-btn" onclick="switchTab('predict', this)">🔮 AI 예측</button>
     <button class="tab-btn" onclick="switchTab('agent', this)">🤖 AI 추천</button>
+    <!-- NEW 20260531: 과거 프랙탈 패턴 매칭 시뮬레이터 (참고용) -->
+    <button class="tab-btn" onclick="switchTab('simulator', this)">🎯 패턴 시뮬레이터</button>
 </div>
 
 <!-- 대시보드 탭 -->
@@ -173,25 +889,29 @@
     <div class="card full-width">
         <h2>📊 시스템 요약</h2>
         <div class="stats-grid">
-            <div class="stat-item" id="card-avgDirAcc">
+            <div class="stat-item" id="card-avgDirAcc" data-icon="🎯">
                 <div class="value" id="avgDirAcc">-</div>
                 <div class="label">① 평균 방향정확도</div>
                 <div class="sublabel" id="avgDirAccSub">검증 결과 누적 기준</div>
+                <svg class="qm-sparkline" id="spark-avgDirAcc" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"></svg>
             </div>
-            <div class="stat-item" id="card-improvement">
+            <div class="stat-item" id="card-improvement" data-icon="📈">
                 <div class="value" id="baselineImprove">-</div>
                 <div class="label">② baseline 개선폭</div>
                 <div class="sublabel">vs naive baseline</div>
+                <svg class="qm-sparkline" id="spark-baselineImprove" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"></svg>
             </div>
-            <div class="stat-item">
+            <div class="stat-item" data-icon="📊">
                 <div class="value" id="verifiedTickers">-</div>
                 <div class="label">③ 검증 종목 수</div>
                 <div class="sublabel" id="verifiedTickersSub">아직 검증된 종목 없음</div>
+                <svg class="qm-sparkline" id="spark-verifiedTickers" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"></svg>
             </div>
-            <div class="stat-item">
+            <div class="stat-item" data-icon="🗓️">
                 <div class="value" id="verifyPeriodSummary">-</div>
                 <div class="label">④ 검증 기간</div>
                 <div class="sublabel" id="verifyPeriodSub">-</div>
+                <svg class="qm-sparkline" id="spark-verifyPeriodSummary" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"></svg>
             </div>
         </div>
     </div>
@@ -342,56 +1062,75 @@
         <div class="ai-tab-grid">
             <div class="card">
                 <h2>🛠️ 예측 설정</h2>
+
+                <!-- 1줄: 종목 코드 (조회 기간은 100일 고정으로 제거됨) -->
                 <div class="input-row">
-                    <div>
-                        <label>모델 선택</label>
-                        <select id="modelVersion">
-                            <option value="V5" selected>V5 (최신 · 추천)</option>
-                            <option value="V4">V4 (Foundation 앙상블)</option>
-                            <option value="V3">V3 (24개 특성)</option>
-                            <option value="V2">V2 (기본형)</option>
-                        </select>
-                    </div>
-                    <!-- FIX 20260523: AI 예측 탭에도 자동완성 추가 (검증 도구와 동일 UX) -->
-                    <div class="autocomplete-wrap">
+                    <div class="autocomplete-wrap" style="flex:1;">
                         <label>종목 코드</label>
                         <input type="text" id="tickerInput" value="KS11" placeholder="예: KS11, 005930" autocomplete="off">
                         <div id="tickerAutocomplete" class="autocomplete-dropdown"></div>
                     </div>
-                    <div>
-                        <label>분석 기간 (일)</label>
-                        <input type="number" id="predictDays" value="100" min="30" max="365">
-                    </div>
                 </div>
-                <button id="runPredictBtn" class="run-btn" style="background:#00d4ff;color:#000;margin-top:8px;" onclick="runPredict()">🚀 AI에게 물어보기</button>
 
-                <!-- NEW UI 20260522: 대시보드에서 옮겨온 종가 차트 — 종목 입력 변경 시 자동 표시 -->
-                <div style="margin-top:20px;border-top:1px dashed #2a2a4a;padding-top:16px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <strong style="color:#00d4ff;font-size:14px;">📈 종가 차트 — <span id="chartTickerLabel">KS11</span></strong>
-                        <button onclick="loadStockData()" class="btn btn-activate" style="padding:6px 14px;">차트 새로고침</button>
+                <!-- 2줄: 학습된 모델 리스트 -->
+                <div style="margin-top:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong style="color:#5b8cff;font-size:14px;">🤖 학습된 모델 — <span id="modelListLabel">KS11</span></strong>
+                        <button onclick="loadModelList()" class="btn btn-activate" style="padding:6px 14px;">새로고침</button>
                     </div>
-                    <canvas id="stockChart" height="100"></canvas>
-                    <div id="stockTable" style="margin-top:12px;"></div>
+                    <div id="modelList" style="min-height:50px;color:#888;font-size:12px;">로딩 중...</div>
                 </div>
+
+                <!-- 3줄: 액션 버튼 2개 -->
+                <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button id="predictWithModelBtn" onclick="predictWithSelectedModel()" class="run-btn"
+                            style="flex:1;min-width:180px;background:#00d4ff;color:#000;padding:10px;font-size:13px;">
+                        🚀 이 모델로 예측
+                    </button>
+                    <button id="trainNewModelBtn" onclick="trainNewModelAndPredict()" class="run-btn"
+                            style="flex:1;min-width:180px;background:#5b8cff;color:#000;padding:10px;font-size:13px;">
+                        🆕 새 모델 생성 + 예측
+                    </button>
+                </div>
+                <p style="color:#666;font-size:10px;margin-top:6px;">💡 "이 모델로 예측"은 위 리스트에서 선택한 모델로 즉시 예측 (~5초). "새 모델 생성"은 강제로 V6를 새로 학습 (약 3분).</p>
+
+                <!-- 진행률 -->
+                <div id="lstmProgress" style="display:none;margin-top:14px;padding:12px;background:#0a1428;border:1px solid #1a2a4a;border-radius:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <strong id="lstmProgressMsg" style="color:#00d4ff;font-size:13px;">준비 중...</strong>
+                        <span id="lstmProgressElapsed" style="color:#888;font-size:11px;">경과 0초</span>
+                    </div>
+                    <div id="lstmProgressSub" style="color:#888;font-size:11px;margin-bottom:8px;line-height:1.4;">상태 확인 중...</div>
+                    <div style="background:#1a1a2e;height:6px;border-radius:3px;overflow:hidden;">
+                        <div id="lstmProgressBar" style="background:linear-gradient(90deg,#00d4ff,#5b8cff);height:100%;width:0%;transition:width 0.5s;"></div>
+                    </div>
+                    <div id="lstmProgressSteps" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"></div>
+                </div>
+
             </div>
+
             <div class="card" id="predictResultCard" style="display:none;">
                 <h2>📊 예측 결과</h2>
-                <!-- NEW [Model Version Routing]: 선택 모델 ≠ 실제 사용 모델일 때 노란 경고 -->
-                <div id="predictModelWarning"
-                     style="display:none;background:#ffd54f;color:#000;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-weight:600;">
-                </div>
                 <div class="result-headline">
                     <span id="predictDirection" class="direction-label direction-hold">🤔 방향 불확실</span>
                     <div class="confidence-block">
                         <span id="predictStars" class="confidence-stars">○○○○○</span>
                         <span id="predictConfidence" class="confidence-text">신뢰도 -</span>
+                        <span style="color:#666;font-size:10px;margin-top:2px;">= |예측 변동| ÷ 게이팅 임계값. 100% = 신호 발동.</span>
+                    </div>
+                    <div id="gatingInfoBlock" style="font-size:11px;color:#888;line-height:1.7;max-width:260px;padding:8px 12px;background:#0a1428;border:1px solid #1a2a4a;border-radius:6px;">
+                        <div style="color:#ffa502;font-weight:bold;margin-bottom:4px;">📊 이 모델의 게이팅 컷</div>
+                        <div>🟢 매수 컷: <b id="gateBuyCut" style="color:#53cf60;">-</b> <span id="signalBuy" style="font-size:10px;margin-left:6px;"></span></div>
+                        <div>🔴 매도 컷: <b id="gateSellCut" style="color:#cf5353;">-</b> <span id="signalSell" style="font-size:10px;margin-left:6px;"></span></div>
+                        <div style="color:#666;font-size:10px;margin-top:4px;line-height:1.4;">자신감 ≥ 컷 이면 신호 발동 (백테스팅 통과 기준 동일). 컷이 높을수록 보수적.</div>
                     </div>
                 </div>
                 <div class="result-comment">
                     <strong>💬 AI의 한마디</strong>
                     <p id="predictSummary">예측을 실행해 주세요.</p>
                 </div>
+                <!-- 20260601: 예측 상세보기 숨김 (방향정확도 로직 정합성 작업중) -->
+                <!--
                 <details class="pred-details">
                     <summary>📊 예측 상세 보기</summary>
                     <ul>
@@ -400,25 +1139,30 @@
                         <li>예측 종가 (T+1): <span id="predictedClose">-</span></li>
                         <li>방향 정확도(과거 검증): <span id="predictDirAcc">-</span></li>
                         <li>MAPE(오차율): <span id="predictMape">-</span></li>
-                        <li>적용 모델 버전: <span id="predictModelBadge">-</span></li>
                     </ul>
                 </details>
+                -->
+
+                <div style="margin-top:10px;text-align:right;color:#666;font-size:11px;">
+                    사용 모델: <span id="predictModelLabel">-</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <strong style="color:#00d4ff;font-size:14px;">📈 종가 차트 — <span id="chartTickerLabel">KS11</span></strong>
+                    <button onclick="loadStockData()" class="btn btn-activate" style="padding:6px 14px;">차트 새로고침</button>
+                </div>
+                <canvas id="stockChart" height="100"></canvas>
             </div>
 
             <!-- NEW UI 20260520: 모델 성능 검증 도구 -->
             <div class="card verify-section">
                 <h2>🎯 모델 성능 검증 도구 <span class="academic-badge">학술적 참고용</span></h2>
                 <p style="color:#aaa;font-size:13px;margin-bottom:14px;">선택한 모델·종목·기간으로 방향정확도를 직접 확인하세요. 학습 구간이면 정확도가 부풀려질 수 있으니 검증/테스트 구간 사용을 권장합니다.</p>
+
+                <!-- 1줄: 종목 + 시작/종료일 -->
                 <div class="input-row">
-                    <div>
-                        <label>모델 선택</label>
-                        <select id="verifyModelVersion">
-                            <option value="V5" selected>V5 (최신)</option>
-                            <option value="V4">V4</option>
-                            <option value="V3">V3</option>
-                            <option value="V2">V2</option>
-                        </select>
-                    </div>
                     <div class="autocomplete-wrap">
                         <label>종목 (학습 완료 5종목)</label>
                         <input type="text" id="verifyTicker" value="KS11" autocomplete="off" placeholder="KS11, 005930 등">
@@ -426,19 +1170,29 @@
                     </div>
                     <div>
                         <label>시작일</label>
-                        <input type="date" id="verifyStart" value="2024-01-01">
+                        <input type="date" id="verifyStart" value="2015-01-02">
                     </div>
                     <div>
                         <label>종료일</label>
-                        <input type="date" id="verifyEnd" value="2024-12-31">
+                        <input type="date" id="verifyEnd" value="2026-06-01">
                     </div>
                 </div>
-                <button id="runVerifyBtn" class="run-btn" style="background:#ffa502;color:#000;margin-top:8px;" onclick="runVerify()">🎯 검증 실행</button>
+
+                <!-- 2줄: 검증할 모델 선택 (AI 예측 탭과 동일 패턴) -->
+                <div style="margin-top:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong style="color:#ffa502;font-size:14px;">🤖 검증할 모델 — <span id="verifyModelListLabel">KS11</span></strong>
+                        <button onclick="loadVerifyModelList()" class="btn btn-activate" style="padding:6px 14px;">새로고침</button>
+                    </div>
+                    <div id="verifyModelList" style="min-height:50px;color:#888;font-size:12px;">로딩 중...</div>
+                </div>
+
+                <button id="runVerifyBtn" class="run-btn" style="background:#ffa502;color:#000;margin-top:14px;" onclick="runVerify()">🎯 이 모델로 검증 실행</button>
                 <div id="verifyResult" style="display:none;margin-top:16px;">
                     <div id="verifyPeriodLabel" class="period-label train">⚠️ 학습 데이터 구간</div>
                     <div class="verify-result-grid">
                         <div class="verify-stat"><div class="vs-value" id="vsDirAcc">-</div><div class="vs-label">방향 정확도</div></div>
-                        <div class="verify-stat"><div class="vs-value" id="vsAvgConf">-</div><div class="vs-label">평균 신뢰도</div></div>
+                        <div class="verify-stat" title="전체 평가 표본 중 Confidence Gating 을 통과한(=실제로 신호가 발생한) 비율. 100% 이면 게이팅 미발동, 낮을수록 모델이 보수적으로 신호를 골랐다는 뜻."><div class="vs-value" id="vsAvgConf">-</div><div class="vs-label">신호 발생률</div></div>
                         <div class="verify-stat"><div class="vs-value" id="vsNaive">-</div><div class="vs-label">Naive Baseline</div></div>
                         <div class="verify-stat" id="vsImprovementCard"><div class="vs-value" id="vsImprove">-</div><div class="vs-label">개선폭 (vs naive)</div></div>
                         <div class="verify-stat"><div class="vs-value" id="vsSamples">-</div><div class="vs-label">평가 샘플</div></div>
@@ -458,6 +1212,9 @@
                         </div>
                         <p style="color:#888;font-size:11px;margin-top:6px;">* 실제 V5 모델은 학습/평가 모두 windowed 80/20 split만 사용 (별도 validation set 없음).</p>
                     </details>
+                    <div style="margin-top:10px;text-align:right;color:#666;font-size:11px;">
+                        사용 모델: <span id="verifyModelLabel">-</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -480,11 +1237,12 @@
                 <input type="text" id="agentQuery" placeholder="예: 안정적인 대형주 3개 추천해줘"
                        style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;margin-bottom:12px;">
                 <div class="example-chips">
-                    <span class="toggle-btn" onclick="fillAgentQuery('안정적인 대형주 3개 추천해줘')">안정적인 대형주 3개</span>
-                    <span class="toggle-btn" onclick="fillAgentQuery('성장성 높은 종목 3개 추천해줘')">성장주 3개</span>
-                    <span class="toggle-btn" onclick="fillAgentQuery('배당 잘 주는 우량주 추천해줘')">배당 우량주</span>
-                    <span class="toggle-btn" onclick="fillAgentQuery('최근 거래량 급증한 종목 추천해줘')">거래량 급증주</span>
-                    <span class="toggle-btn" onclick="fillAgentQuery('저평가된 반등 기대주 추천해줘')">저평가 반등주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('일주일간 안정적인 대형주 3개 추천해줘')">일주일 안정 대형주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('일주일간 변동성 있는 종목 3개 추천해줘')">일주일 변동성주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('한달간 성장성 높은 종목 3개 추천해줘')">한달 성장주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('일주일간 거래량 급증한 종목 추천해줘')">일주일 거래량 급증주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('한달간 저평가된 반등 기대주 추천해줘')">한달 반등주</span>
+                    <span class="toggle-btn" onclick="fillAgentQuery('3일간 급등 가능성 있는 종목 추천해줘')">3일 단타주</span>
                 </div>
                 <button id="runAgentBtn" class="run-btn" style="background:#a55eea;color:#fff;margin-top:4px;" onclick="runAgent()">✨ AI Agent에게 추천받기</button>
                 <p class="disclaimer" style="color:#ffa502;font-size:12px;margin-top:10px;">⚠️ AI가 추천한 종목은 참고용이며, 실제 투자는 사용자 판단에 따릅니다.</p>
@@ -505,10 +1263,10 @@
                     </div>
                 </div>
                 <div id="agentRecList"></div>
-                <!-- STEP4 20260527: AI 심층 리포트 전체 (토글) -->
-                <details id="agentReportBox" class="pred-details" style="display:none;margin-top:12px;">
-                    <summary>📄 AI 심층 리포트 전체 보기</summary>
-                    <div id="agentReportContent" class="report-content"></div>
+                <!-- 20260601: 심층 내용은 상위 5개 카드에 직접 통합됨. 토글 버튼은 TOP 6~50 추가 후보로 용도 변경. -->
+                <details id="agentOthersBox" class="pred-details" style="display:none;margin-top:12px;">
+                    <summary>📋 TOP 6 ~ 50 추가 후보 보기 (45종목)</summary>
+                    <div id="agentOthersContent" class="report-content"></div>
                 </details>
                 <div id="agentSummaryBox" class="agent-summary" style="display:none;">
                     <strong>💬 종합 의견</strong>
@@ -519,8 +1277,347 @@
     </section>
 </div>
 
+<!-- NEW 20260531: 패턴 시뮬레이터 탭 — AItr_simulator 백엔드 이식판 -->
+<div class="tab-content" id="tab-simulator">
+    <section class="full-width" style="grid-column: 1 / -1;">
+        <header class="ai-header">
+            <h1>🎯 패턴 시뮬레이터</h1>
+            <p class="subtitle">현재 차트와 가장 유사한 과거 프랙탈 패턴을 찾아 향후 변동 범위를 추정합니다.</p>
+            <p class="disclaimer">⚠️ 이 도구는 학술적 참고용이며, 실제 투자는 사용자 판단에 따릅니다.</p>
+        </header>
+        <div class="ai-tab-grid">
+            <div class="card">
+                <h2>🛠️ 분석 설정</h2>
+                <div class="input-row">
+                    <div class="autocomplete-wrap">
+                        <label>종목 코드</label>
+                        <input type="text" id="simTickerInput" value="005930" placeholder="예: 005930, KS11" autocomplete="off">
+                        <div id="simTickerAutocomplete" class="autocomplete-dropdown"></div>
+                    </div>
+                    <div>
+                        <label>예측 기간 (일)</label>
+                        <input type="number" id="simPredictionDays" value="20" min="5" max="60" step="5">
+                    </div>
+                </div>
+                <button id="runSimMatchBtn" class="run-btn" style="background:#ffa502;color:#000;margin-top:8px;" onclick="runSimulatorMatch()">🎯 패턴 분석 시작</button>
+                <div id="simStatus" class="loading-state" style="display:none;margin-top:14px;">
+                    <span class="spinner">🔍</span>
+                    <p>과거 데이터 스캔 중...</p>
+                </div>
+                <div id="simSuccessMsg" style="display:none;margin-top:14px;padding:10px 14px;background:#1a3a2a;border-left:4px solid #53cf60;border-radius:6px;color:#cfffd8;font-weight:600;"></div>
+            </div>
+
+            <div class="card" id="simResultCard" style="display:none;">
+                <h2>💰 모의 투자 시뮬레이션</h2>
+                <p style="color:#888;font-size:13px;margin-bottom:10px;">향후 <span id="simResPredDays">-</span>일간의 시나리오에 따른 투자 결과 추정 (참고용)</p>
+                <div style="margin-bottom:14px;">
+                    <label style="color:#888;font-size:0.85rem;">투자 금액(원)</label>
+                    <input type="number" id="simInvestAmount" value="1000000" min="0" step="50000"
+                           style="width:100%;padding:10px;background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:6px;margin-top:6px;"
+                           oninput="updateSimulatorScenarioCards()">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="stat-item" style="border-left:4px solid #53cf60;">
+                        <div class="value profit-positive" id="simBullValue">-</div>
+                        <div class="label">최대 기대 수익</div>
+                        <div class="sublabel" id="simBullPct" style="color:#53cf60;">-</div>
+                    </div>
+                    <div class="stat-item" style="border-left:4px solid #cf5353;">
+                        <div class="value profit-negative" id="simBearValue">-</div>
+                        <div class="label">최대 예상 손실</div>
+                        <div class="sublabel" id="simBearPct" style="color:#cf5353;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width" id="simChartCard" style="display:none;grid-column:1 / -1;">
+                <h2>📊 패턴 차트 분석</h2>
+                <p style="color:#888;font-size:13px;margin-bottom:10px;">현재 차트(파랑)와 AI가 찾은 과거 상승/하락 상하단 바운더리 추정</p>
+                <div id="simPatternChart" style="width:100%;height:480px;"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
 <script>
     const API = "/api";
+
+    /* ========================================================
+       DESIGN PASS 3 — 차트 토큰 통일 (20260602)
+       - CSS 변수에서 한 번만 읽어와 모든 Chart.js / Plotly 인스턴스에 공유.
+       - 다크 톤 / 폰트 / 그리드 색을 디자인 시스템과 1:1 매칭.
+       - 인라인 chart 설정에서는 QM 객체 키를 참조.
+       ======================================================== */
+    const QM = (function () {
+        const css = getComputedStyle(document.documentElement);
+        const v = (n, fallback) => (css.getPropertyValue(n).trim() || fallback);
+        return {
+            bg0: v('--bg-0', '#07070f'),
+            bg2: v('--bg-2', '#14142a'),
+            border: 'rgba(255,255,255,0.05)',
+            grid:   'rgba(255,255,255,0.04)',
+            text:   v('--text-secondary', '#a8aec0'),
+            textMuted: v('--text-muted', '#6c7287'),
+            cyan:   v('--accent-cyan', '#00d4ff'),
+            cyanFill: 'rgba(0,212,255,0.10)',
+            blue:   v('--accent-blue', '#5e9dff'),
+            purple: v('--accent-purple', '#a55eea'),
+            success: v('--success', '#4cd97b'),
+            successFill: 'rgba(76,217,123,0.12)',
+            danger:  v('--danger', '#ff6b6b'),
+            warning: v('--warning', '#ffa94d'),
+            font: '"Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif'
+        };
+    })();
+
+    // Chart.js 전역 디폴트 (모든 인스턴스에 자동 적용)
+    if (window.Chart && Chart.defaults) {
+        Chart.defaults.font.family = QM.font;
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = QM.text;
+        Chart.defaults.borderColor = QM.border;
+        Chart.defaults.scale.grid.color = QM.grid;
+        Chart.defaults.scale.grid.borderColor = QM.border;
+        Chart.defaults.plugins.legend.labels.color = QM.text;
+        Chart.defaults.plugins.legend.labels.font = { family: QM.font, size: 11 };
+        Chart.defaults.plugins.legend.labels.boxWidth = 12;
+        Chart.defaults.plugins.legend.labels.boxHeight = 12;
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(7,7,15,0.95)';
+        Chart.defaults.plugins.tooltip.borderColor = 'rgba(0,212,255,0.35)';
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.titleColor = QM.cyan;
+        Chart.defaults.plugins.tooltip.bodyColor = QM.text;
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.displayColors = true;
+        Chart.defaults.elements.line.tension = 0.35;
+        Chart.defaults.elements.line.borderWidth = 2;
+        Chart.defaults.elements.point.radius = 0;
+        Chart.defaults.elements.point.hoverRadius = 5;
+        Chart.defaults.animation.duration = 700;
+        Chart.defaults.animation.easing = 'easeOutCubic';
+    }
+
+    /* ========================================================
+       DESIGN PASS 4 — 카운트업 + 탭 인디케이터 글라이드 (20260602)
+       ======================================================== */
+    // 4-1) 탭 인디케이터: switchTab 을 래핑하지 않고 .tab-btn class 변경을 관찰.
+    function qmUpdateTabIndicator(immediate = false) {
+        const nav = document.querySelector('.tab-nav');
+        const active = nav?.querySelector('.tab-btn.active');
+        if (!nav || !active) return;
+        if (immediate) nav.classList.add('qm-no-anim');
+        const navRect = nav.getBoundingClientRect();
+        const r = active.getBoundingClientRect();
+        nav.style.setProperty('--qm-tab-left', (r.left - navRect.left) + 'px');
+        nav.style.setProperty('--qm-tab-width', r.width + 'px');
+        if (immediate) {
+            void nav.offsetWidth; // 강제 리플로우 → no-anim 효과 보장
+            requestAnimationFrame(() => nav.classList.remove('qm-no-anim'));
+        }
+    }
+    // 탭 버튼 class 변경(=switchTab 호출) 시마다 자동 추적 → switchTab 함수 손 안 댐.
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            new MutationObserver(() => qmUpdateTabIndicator()).observe(btn, {
+                attributes: true, attributeFilter: ['class']
+            });
+        });
+        qmUpdateTabIndicator(true);
+    });
+    window.addEventListener('load', () => qmUpdateTabIndicator(true));
+    window.addEventListener('resize', () => qmUpdateTabIndicator(true));
+
+    // 4-2) 카운트업: stat-item .value / verify-stat .vs-value 의 textContent 변경 자동 감지.
+    //   prefix(₩, $ 등) + 숫자 + suffix(%, 원, 배 등) 형태를 파싱해 0 → 목표값까지 easeOutCubic.
+    //   `el._qmAnimating` 플래그로 자체 호출 시 MutationObserver 피드백 루프 차단.
+    const QM_NUMBER_SELECTOR = '.stat-item .value, .verify-stat .vs-value';
+    function qmCountUp(el, duration = 900) {
+        if (!el || el._qmAnimating) return;
+        const raw = (el.textContent || '').trim();
+        if (!raw) return;
+        // 20260602 LOOP-FIX: 같은 최종값으로 재호출되면 즉시 skip.
+        //   원인: tick() 가 final textContent 를 세팅하면 MutationObserver 가 그것도
+        //   변경으로 잡아내고, 그때 _qmAnimating 은 이미 false 라 새 countUp 시작 → 0 부터 다시 → 무한.
+        //   해결: 마지막으로 완료된 final text 를 캐시. 같은 text 면 새 애니 안 시작.
+        if (el._qmFinalText === raw) return;
+        const m = raw.match(/^([^\d\-+.]*?)([+-]?\d[\d,]*\.?\d*)(.*)$/);
+        if (!m) return;
+        const prefix = m[1] || '';
+        const numStr = m[2].replace(/,/g, '');
+        const suffix = m[3] || '';
+        const target = parseFloat(numStr);
+        if (!isFinite(target) || isNaN(target)) return;
+        const decimals = (numStr.split('.')[1] || '').length;
+        const useComma = /,/.test(m[2]) || Math.abs(target) >= 1000;
+        function fmt(v) {
+            let s = decimals > 0 ? v.toFixed(decimals) : Math.round(v).toString();
+            if (useComma) {
+                const parts = s.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                s = parts.join('.');
+            }
+            return prefix + s + suffix;
+        }
+        el._qmAnimating = true;
+        el.classList.add('qm-num-running');
+        const start = performance.now();
+        function tick(now) {
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            el.textContent = fmt(target * eased);
+            if (t < 1) {
+                requestAnimationFrame(tick);
+            } else {
+                const finalText = fmt(target);
+                el._qmFinalText = finalText;   // ← LOOP-FIX: final 캐시 (다음 record 처리 시 skip 조건)
+                el.textContent = finalText;
+                el._qmAnimating = false;
+                el.classList.remove('qm-num-running');
+            }
+        }
+        requestAnimationFrame(tick);
+    }
+    // textContent / 자식 노드 변경 모두 감지. 애니 중 자체 변경은 _qmAnimating 으로 무시.
+    const qmStatObserver = new MutationObserver(records => {
+        const seen = new Set();
+        for (const r of records) {
+            const node = r.target.nodeType === Node.TEXT_NODE ? r.target.parentElement : r.target;
+            if (!node) continue;
+            const els = node.matches?.(QM_NUMBER_SELECTOR)
+                ? [node]
+                : Array.from(node.querySelectorAll?.(QM_NUMBER_SELECTOR) || []);
+            for (const el of els) {
+                if (!seen.has(el) && !el._qmAnimating) {
+                    seen.add(el);
+                    qmCountUp(el);
+                }
+            }
+        }
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        qmStatObserver.observe(document.body, { childList: true, characterData: true, subtree: true });
+        // 초기 로드 시 이미 DOM 에 있는 값들도 한 번 애니 (대시보드 4 카드 등)
+        document.querySelectorAll(QM_NUMBER_SELECTOR).forEach(el => qmCountUp(el));
+    });
+
+    /* ========================================================
+       DESIGN PASS 5 — Sparkline 렌더 헬퍼 (20260602)
+       SVG path 두 개를 그려 area+line 차트. CSS 변수로 stroke 색 자동 매칭.
+       ======================================================== */
+    function qmRenderSparkline(svgId, values) {
+        const svg = typeof svgId === 'string' ? document.getElementById(svgId) : svgId;
+        if (!svg) return;
+        svg.innerHTML = '';
+        const W = 100, H = 36, PAD = 2;
+        const valid = (values || []).filter(v => typeof v === 'number' && isFinite(v));
+        if (valid.length < 2) { svg.classList.remove('qm-on'); return; }
+        const min = Math.min(...valid);
+        const max = Math.max(...valid);
+        const range = max - min || 1;
+        const step = (W - PAD * 2) / (valid.length - 1);
+        const pts = valid.map((v, i) => {
+            const x = PAD + i * step;
+            const y = H - PAD - ((v - min) / range) * (H - PAD * 2);
+            return [x, y];
+        });
+        const linePath = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join(' ');
+        const areaPath = linePath + ` L${pts[pts.length-1][0].toFixed(2)} ${H} L${pts[0][0].toFixed(2)} ${H} Z`;
+        const NS = 'http://www.w3.org/2000/svg';
+        const area = document.createElementNS(NS, 'path');
+        area.setAttribute('class', 'qm-sl-area');
+        area.setAttribute('d', areaPath);
+        const line = document.createElementNS(NS, 'path');
+        line.setAttribute('class', 'qm-sl-line');
+        line.setAttribute('d', linePath);
+        const dot = document.createElementNS(NS, 'circle');
+        dot.setAttribute('class', 'qm-sl-dot');
+        dot.setAttribute('cx', pts[pts.length-1][0].toFixed(2));
+        dot.setAttribute('cy', pts[pts.length-1][1].toFixed(2));
+        dot.setAttribute('r', '2.4');
+        svg.appendChild(area);
+        svg.appendChild(line);
+        svg.appendChild(dot);
+        requestAnimationFrame(() => svg.classList.add('qm-on'));
+    }
+
+    /* ========================================================
+       DESIGN PASS 6 — Skeleton / Empty / Error 헬퍼 (20260602)
+       ======================================================== */
+    function qmSkeletonRecCards(n = 5) {
+        let html = '';
+        for (let i = 0; i < n; i++) {
+            html += '<div class="qm-rec-skeleton">'
+                  + '<div class="qm-sk-row qm-sk-title"></div>'
+                  + '<div class="qm-sk-row qm-sk-w-90"></div>'
+                  + '<div class="qm-sk-row qm-sk-w-80"></div>'
+                  + '<div class="qm-sk-row qm-sk-w-60"></div>'
+                  + '</div>';
+        }
+        return html;
+    }
+    function qmEmptyState({ icon = '🔮', title = '아직 데이터가 없어요', hint = '먼저 한 번 실행해 주세요.' } = {}) {
+        return `<div class="qm-empty-state">
+            <div class="qm-empty-art">${icon}</div>
+            <div class="qm-empty-title">${title}</div>
+            <div class="qm-empty-hint">${hint}</div>
+        </div>`;
+    }
+    function qmErrorState({ title = '문제가 발생했어요', msg = '', onRetry = null } = {}) {
+        const retryAttr = onRetry ? `onclick="(${onRetry.toString()})()"` : '';
+        const retryBtn = onRetry ? `<button class="qm-error-retry" ${retryAttr}>다시 시도</button>` : '';
+        const safeMsg = (msg + '').replace(/[<>&"]/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[s]));
+        return `<div class="qm-error-state">
+            <div class="qm-error-icon">⚠️</div>
+            <div class="qm-error-title">${title}</div>
+            <div class="qm-error-msg">${safeMsg}</div>
+            ${retryBtn}
+        </div>`;
+    }
+
+    /* ========================================================
+       DESIGN PASS 7 — Toast 알림 (20260602)
+       사용: qmToast({ type:'success'|'error'|'warning'|'info', title, msg, duration })
+            또는 qmToast('메시지') — 한 줄짜리 info 토스트.
+       기존 alert() 의 동기-blocking 동작이 필요한 경우엔 alert 유지.
+       ======================================================== */
+    function qmToast(opts, type = 'info', duration = 3800) {
+        if (typeof opts === 'string') opts = { type, title: '', msg: opts, duration };
+        opts = Object.assign({ type: 'info', title: '', msg: '', duration: 3800 }, opts);
+        const root = document.getElementById('qm-toast-root');
+        if (!root) return;
+        const ICONS = { success: '✅', error: '⚠️', warning: '⚠️', info: '💬' };
+        const el = document.createElement('div');
+        el.className = `qm-toast qm-toast-${opts.type}`;
+        const safeTitle = (opts.title + '').replace(/[<>&"]/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[s]));
+        const safeMsg   = (opts.msg + '').replace(/[<>&"]/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[s]));
+        el.innerHTML = `
+            <span class="qm-toast-icon">${ICONS[opts.type] || ICONS.info}</span>
+            <div class="qm-toast-body">
+                ${safeTitle ? `<div class="qm-toast-title">${safeTitle}</div>` : ''}
+                ${safeMsg ? `<div class="qm-toast-msg">${safeMsg}</div>` : ''}
+            </div>
+            <button class="qm-toast-close" aria-label="닫기">×</button>
+            <div class="qm-toast-bar" style="animation-duration:${opts.duration}ms;"></div>
+        `;
+        root.appendChild(el);
+        const close = () => {
+            if (el._qmClosed) return;
+            el._qmClosed = true;
+            el.classList.add('qm-out');
+            setTimeout(() => el.remove(), 380);
+        };
+        el.querySelector('.qm-toast-close').onclick = close;
+        setTimeout(close, opts.duration);
+        return el;
+    }
+    // 단축 헬퍼
+    window.qmToast = qmToast;
+    window.qmToastSuccess = (title, msg, dur) => qmToast({ type: 'success', title, msg, duration: dur || 3500 });
+    window.qmToastError   = (title, msg, dur) => qmToast({ type: 'error',   title, msg, duration: dur || 5000 });
+    window.qmToastWarning = (title, msg, dur) => qmToast({ type: 'warning', title, msg, duration: dur || 4500 });
+    window.qmToastInfo    = (title, msg, dur) => qmToast({ type: 'info',    title, msg, duration: dur || 3500 });
 
     function switchTab(tabName, btn) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -534,6 +1631,7 @@
         // loadStrategies(); loadBacktests();
         loadVerifyHistory();          // NEW: localStorage 기반 검증 누적 표 + 시스템 요약 갱신
         loadStockData();              // 종가 차트 (AI 예측 탭으로 이동했으나 함수는 그대로 사용)
+        if (typeof loadModelList === 'function') loadModelList();
         document.getElementById("serverStatus").textContent = "서버 연결됨 ✓";
         document.getElementById("serverStatus").style.color = "#53cf60";
     };
@@ -600,18 +1698,17 @@ async function loadStockData() {
             data: {
                 labels: data.map(s => s.date.substring(5)),
                 datasets: [
-                    { label: "종가", data: data.map(s => s.close), borderColor: "#00d4ff", backgroundColor: "rgba(0,212,255,0.1)", fill: true, tension: 0.3, pointRadius: 0, yAxisID: "y" },
-                    { label: "거래량", data: data.map(s => s.volume), type: "bar", backgroundColor: "rgba(83,207,96,0.3)", yAxisID: "y1" }
+                    { label: "종가", data: data.map(s => s.close), borderColor: QM.cyan, backgroundColor: QM.cyanFill, fill: true, tension: 0.35, pointRadius: 0, yAxisID: "y" },
+                    { label: "거래량", data: data.map(s => s.volume), type: "bar", backgroundColor: 'rgba(76,217,123,0.25)', borderColor: 'transparent', yAxisID: "y1" }
                 ]
             },
             options: {
                 responsive: true,
                 interaction: { mode: "index", intersect: false },
-                plugins: { legend: { labels: { color: "#888" } } },
                 scales: {
-                    x: { ticks: { color: "#666", maxTicksLimit: 15 }, grid: { color: "#1a1a2e" } },
-                    y: { position: "left", ticks: { color: "#00d4ff" }, grid: { color: "#1a1a2e" } },
-                    y1: { position: "right", ticks: { color: "#53cf60" }, grid: { display: false } }
+                    x: { ticks: { color: QM.textMuted, maxTicksLimit: 15 }, grid: { color: QM.grid, drawBorder: false } },
+                    y: { position: "left", ticks: { color: QM.cyan, callback: v => Number(v).toLocaleString() }, grid: { color: QM.grid, drawBorder: false } },
+                    y1: { position: "right", ticks: { color: QM.success }, grid: { display: false } }
                 }
             }
         });
@@ -663,22 +1760,216 @@ async function loadStockData() {
         return '●'.repeat(filled) + '○'.repeat(5 - filled);
     }
 
-    async function runPredict() {
-        const btn = document.getElementById("runPredictBtn");
+    // 학습 진행률 단계 (시간 기반 추정 — 백엔드 streaming 아님)
+    const LSTM_TRAIN_STAGES = [
+        { until: 12,  step: 1, msg: "데이터 다운로드 중...",         sub: "주가 데이터와 외부 지표를 가져오는 중이에요." },
+        { until: 70,  step: 2, msg: "Foundation 모델 학습 중...",    sub: "Chronos + DeepAR + ADIDA 3개 시계열 모델을 학습합니다 (약 50초)." },
+        { until: 210, step: 3, msg: "LSTM 본 모델 학습 중...",       sub: "딥러닝 본체 학습 — 가장 오래 걸리는 단계 (max ~150초, plateau 감지 시 조기 종료)." },
+        { until: 999, step: 4, msg: "평가 + 저장 중...",             sub: "방향정확도 / 게이팅 calibration / 모델 저장." }
+    ];
+    const LSTM_TRAIN_ESTIMATED = 200;
+    const LSTM_PREDICT_ESTIMATED = 5;
+    let _lstmTimer = null;
+
+    function startLstmProgress(needsTraining, code) {
+        const box = document.getElementById("lstmProgress");
+        box.style.display = "block";
+        const t0 = Date.now();
+        const total = needsTraining ? LSTM_TRAIN_ESTIMATED : LSTM_PREDICT_ESTIMATED;
+        const stages = needsTraining ? LSTM_TRAIN_STAGES : [
+            { until: 999, step: 1, msg: `✓ ${code} V6 모델 발견 — 예측 중...`,
+              sub: "기존 학습된 모델로 즉시 예측합니다 (~5초)." }
+        ];
+        const stepsEl = document.getElementById("lstmProgressSteps");
+        stepsEl.innerHTML = stages.map(s =>
+            `<span class="lstm-chip" data-step="${s.step}" style="padding:3px 8px;background:#1a1a2e;color:#666;border-radius:10px;font-size:10px;white-space:nowrap;">${s.step}. ${s.msg.replace(/\.\.\.|중\.\.\.$/, '').trim()}</span>`
+        ).join('');
+        function tick() {
+            const sec = (Date.now() - t0) / 1000;
+            const stage = stages.find(s => sec < s.until) || stages[stages.length - 1];
+            document.getElementById("lstmProgressMsg").textContent = stage.msg;
+            document.getElementById("lstmProgressSub").textContent = stage.sub;
+            document.getElementById("lstmProgressElapsed").textContent = `경과 ${Math.floor(sec)}초`;
+            document.getElementById("lstmProgressBar").style.width =
+                Math.min(95, (sec / total) * 100).toFixed(1) + "%";
+            stepsEl.querySelectorAll(".lstm-chip").forEach(c => {
+                const cstep = parseInt(c.dataset.step);
+                if (cstep < stage.step) { c.style.background = "#053a4a"; c.style.color = "#5b8cff"; }
+                else if (cstep === stage.step) { c.style.background = "#0a7a96"; c.style.color = "#00d4ff"; }
+                else { c.style.background = "#1a1a2e"; c.style.color = "#666"; }
+            });
+        }
+        tick();
+        _lstmTimer = setInterval(tick, 500);
+    }
+    function stopLstmProgress() {
+        if (_lstmTimer) { clearInterval(_lstmTimer); _lstmTimer = null; }
+        const bar = document.getElementById("lstmProgressBar");
+        if (bar) bar.style.width = "100%";
+        setTimeout(() => {
+            const box = document.getElementById("lstmProgress");
+            if (box) box.style.display = "none";
+        }, 800);
+    }
+
+    let _selectedModelId = null;
+
+    async function loadModelList() {
         const code = (document.getElementById("tickerInput").value || "KS11").trim();
-        const days = parseInt(document.getElementById("predictDays").value) || 100;
-        const modelVersion = document.getElementById("modelVersion").value;
-        btn.disabled = true; btn.textContent = "⏳ 예측 중...";
+        const labelEl = document.getElementById("modelListLabel");
+        const listEl = document.getElementById("modelList");
+        if (labelEl) labelEl.textContent = code;
+        if (!listEl) return;
+        listEl.innerHTML = '<div style="color:#888;padding:6px;">로딩 중...</div>';
+        try {
+            const res = await fetch(`${API}/backtest/models?code=${encodeURIComponent(code)}`);
+            const json = await res.json();
+            const data = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
+            const models = (data && data.models) || [];
+            if (!models.length) {
+                listEl.innerHTML = '<div style="color:#888;padding:10px 0;">학습된 모델이 없어요. 아래 <b style="color:#5b8cff;">🆕 새 모델 학습 + 예측</b>으로 만들어보세요.</div>';
+                _selectedModelId = null;
+                return;
+            }
+            _selectedModelId = models[0].modelId; // 첫 번째(최신) 기본 선택
+            listEl.innerHTML = models.map((m, i) => {
+                const isLegacy = m.isLegacy;
+                const ts = m.trainedAt ? new Date(m.trainedAt).toLocaleString('ko-KR', {dateStyle: 'short', timeStyle: 'short'}) : '-';
+                const daRaw = m.gatedWeightedDaPct;
+                const da = (daRaw !== null && daRaw !== undefined) ? `${Number(daRaw).toFixed(1)}%` : '-';
+                const checked = i === 0 ? 'checked' : '';
+                const safeId = String(m.modelId).replace(/'/g, "\\'");
+                return `
+                <div class="model-row" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0a1428;border:1px solid #1a2a4a;border-radius:6px;margin-bottom:6px;">
+                    <input type="radio" name="modelSel" value="${m.modelId}" ${checked} onchange="_selectedModelId='${safeId}'" style="cursor:pointer;accent-color:#5b8cff;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="color:#5b8cff;font-size:12px;font-weight:bold;">${isLegacy ? '⚠️ legacy (이전 버전 — DA 미기록)' : m.modelId}</div>
+                        <div style="color:#888;font-size:10px;margin-top:2px;">학습: ${ts}</div>
+                    </div>
+                    <div style="text-align:right;min-width:80px;">
+                        <div style="color:#00d4ff;font-size:13px;font-weight:bold;">DA ${da}</div>
+                        <div style="color:#666;font-size:9px;">게이팅 적용</div>
+                    </div>
+                    <button onclick="deleteModel('${safeId}')" class="btn" style="background:#cf5353;color:#fff;padding:4px 10px;font-size:11px;border:none;border-radius:4px;cursor:pointer;" title="모델 삭제">🗑️</button>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            listEl.innerHTML = `<div style="color:#cf5353;padding:6px;">모델 리스트 로드 실패: ${e.message}</div>`;
+            _selectedModelId = null;
+        }
+    }
+
+    async function deleteModel(modelId) {
+        const code = (document.getElementById("tickerInput").value || "KS11").trim();
+        if (!confirm(`모델 "${modelId}" 를 삭제할까요? (복구 불가)`)) return;
+        try {
+            const res = await fetch(`${API}/backtest/model?code=${encodeURIComponent(code)}&modelId=${encodeURIComponent(modelId)}`, {method: 'DELETE'});
+            const json = await res.json();
+            if (!res.ok || !json.success) {
+                qmToastError('모델 삭제 실패', json.message || '서버 응답 오류');
+                return;
+            }
+            loadModelList();
+        } catch (e) {
+            qmToastError('모델 삭제 실패', e.message);
+        }
+    }
+
+    async function trainNewModelAndPredict() {
+        await runPredict(true);
+    }
+
+    let _verifySelectedModelId = null;
+
+    async function loadVerifyModelList() {
+        const code = (document.getElementById("verifyTicker").value || "KS11").trim();
+        const labelEl = document.getElementById("verifyModelListLabel");
+        const listEl = document.getElementById("verifyModelList");
+        if (labelEl) labelEl.textContent = code;
+        if (!listEl) return;
+        listEl.innerHTML = '<div style="color:#888;padding:6px;">로딩 중...</div>';
+        try {
+            const res = await fetch(`${API}/backtest/models?code=${encodeURIComponent(code)}`);
+            const json = await res.json();
+            const data = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
+            const models = (data && data.models) || [];
+            if (!models.length) {
+                listEl.innerHTML = '<div style="color:#888;padding:10px 0;">학습된 모델이 없어요. <b>AI 예측 탭</b>에서 새 모델을 먼저 학습해주세요.</div>';
+                _verifySelectedModelId = null;
+                return;
+            }
+            _verifySelectedModelId = models[0].modelId;
+            listEl.innerHTML = models.map((m, i) => {
+                const isLegacy = m.isLegacy;
+                const ts = m.trainedAt ? new Date(m.trainedAt).toLocaleString('ko-KR', {dateStyle: 'short', timeStyle: 'short'}) : '-';
+                const daRaw = m.gatedWeightedDaPct;
+                const da = (daRaw !== null && daRaw !== undefined) ? `${Number(daRaw).toFixed(1)}%` : '-';
+                const checked = i === 0 ? 'checked' : '';
+                const safeId = String(m.modelId).replace(/'/g, "\\'");
+                return `
+                <div class="model-row" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0a1428;border:1px solid #1a2a4a;border-radius:6px;margin-bottom:6px;">
+                    <input type="radio" name="verifyModelSel" value="${m.modelId}" ${checked} onchange="_verifySelectedModelId='${safeId}'" style="cursor:pointer;accent-color:#ffa502;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="color:#ffa502;font-size:12px;font-weight:bold;">${isLegacy ? '⚠️ legacy (이전 버전 — DA 미기록)' : m.modelId}</div>
+                        <div style="color:#888;font-size:10px;margin-top:2px;">학습: ${ts}</div>
+                    </div>
+                    <div style="text-align:right;min-width:80px;">
+                        <div style="color:#00d4ff;font-size:13px;font-weight:bold;">DA ${da}</div>
+                        <div style="color:#666;font-size:9px;">게이팅 적용</div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            listEl.innerHTML = `<div style="color:#cf5353;padding:6px;">모델 리스트 로드 실패: ${e.message}</div>`;
+            _verifySelectedModelId = null;
+        }
+    }
+
+    async function predictWithSelectedModel() {
+        if (!_selectedModelId) {
+            qmToastWarning('모델 미선택', '모델이 선택되지 않았습니다. 위 리스트에서 모델을 먼저 선택해주세요.');
+            return;
+        }
+        await runPredict(false);
+    }
+
+    async function runPredict(forceTrain = false) {
+        const btnPredict = document.getElementById("predictWithModelBtn");
+        const btnNew = document.getElementById("trainNewModelBtn");
+        const code = (document.getElementById("tickerInput").value || "KS11").trim();
+        // predictDays input 은 UI 에서 제거됨 — 100일 고정
+        const daysInput = document.getElementById("predictDays");
+        const days = daysInput ? (parseInt(daysInput.value) || 100) : 100;
+        if (btnPredict) btnPredict.disabled = true;
+        if (btnNew) btnNew.disabled = true;
+        if (forceTrain && btnNew) btnNew.textContent = "⏳ 새 모델 학습 + 예측 중...";
+        else if (!forceTrain && btnPredict) btnPredict.textContent = "⏳ 예측 중...";
+
+        const modelId = forceTrain ? '' : (_selectedModelId || '');
+        // forceTrain 이거나 선택된 모델 없으면 학습 진행률, 모델 있으면 예측 진행률
+        let needsTraining = forceTrain;
+        if (!forceTrain && !modelId) {
+            try {
+                const checkRes = await fetch(`${API}/backtest/has-model?code=${encodeURIComponent(code)}`);
+                const checkJson = await checkRes.json();
+                const checkData = typeof checkJson.data === 'string' ? JSON.parse(checkJson.data) : checkJson.data;
+                needsTraining = !checkData || !checkData.exists;
+            } catch (_e) { needsTraining = true; }
+        }
+
+        startLstmProgress(needsTraining, code);
+
         try {
             const res = await fetch(`${API}/backtest/predict`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({code, days, modelVersion}) // modelVersion: 백엔드가 lstm_service까지 전달, 없거나 실패면 자동 폴백
+                body: JSON.stringify({code, days, modelId, forceTrain})
             });
             const result = await res.json();
+            stopLstmProgress();
             let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
             if (!data || data.error) {
-                alert("예측 실패: " + (data && data.error ? data.error : "응답 없음"));
+                qmToastError('AI 예측 실패', (data && data.error) ? data.error : '응답이 없습니다.');
                 btn.disabled = false; btn.textContent = "🚀 AI에게 물어보기"; return;
             }
             document.getElementById("predictResultCard").style.display = "block";
@@ -687,66 +1978,77 @@ async function loadStockData() {
             const predicted = Number(data.latestPredicted) || 0;
             const deltaPct = actual ? ((predicted - actual) / actual) * 100 : 0;
             const dirAcc = Number(data.directionAccuracy) || 0;
+            const usedModel = data.modelVersion || "-";
 
             // 방향 판단: 변동률 ±0.3% 미만은 Hold
             const dirEl = document.getElementById("predictDirection");
             let dirLabel, dirClass, summaryText;
             if (deltaPct > 0.3) {
                 dirLabel = "📈 상승 가능성 우세"; dirClass = "direction-label direction-up";
-                summaryText = `${modelVersion} 모델이 ${code}에 대해 상승 신호를 예측했습니다. (방향 정확도 ${dirAcc}%)`;
+                summaryText = `${code}에 대해 상승 신호를 예측했습니다.`;
             } else if (deltaPct < -0.3) {
                 dirLabel = "📉 하락 가능성 우세"; dirClass = "direction-label direction-down";
-                summaryText = `${modelVersion} 모델이 ${code}에 대해 하락 신호를 예측했습니다. (방향 정확도 ${dirAcc}%) 매도 신호는 모델 한계상 정확도가 낮으니 참고용으로만 활용하세요.`;
+                summaryText = `${code}에 대해 하락 신호를 예측했습니다. 매도 신호는 모델 한계상 정확도가 낮으니 참고용으로만 활용하세요.`;
             } else {
                 dirLabel = "🤔 방향 불확실 (Hold)"; dirClass = "direction-label direction-hold";
-                summaryText = `${modelVersion} 모델이 ${code}에 대해 뚜렷한 방향 신호를 보이지 않습니다. 추가 지표 확인을 권장합니다.`;
+                summaryText = `${code}에 대해 뚜렷한 방향 신호를 보이지 않습니다. 추가 지표 확인을 권장합니다.`;
             }
             dirEl.textContent = dirLabel;
             dirEl.className = dirClass;
 
-            // FIX 20260528: 신뢰도를 directionAccuracy(과거 검증 정확도) 대신
-            //               V5 게이팅 신뢰도(confidenceEntry, 0~1)로 표시. 의미상 더 정확.
-            //               방향 정확도는 아래 상세보기 줄(predictDirAcc)에 그대로 표시됨.
-            const rawConf = (typeof data.confidenceEntry === "number") ? data.confidenceEntry
-                          : (typeof data.confidenceExit === "number") ? data.confidenceExit : null;
-            const confPct = (rawConf !== null) ? Math.round(rawConf * 100) : Math.round(dirAcc);
+            // FIX 20260601: 방향에 맞는 게이팅 신뢰도 선택 — 상승=entry, 하락=exit, 보합=max
+            const cEntry = (typeof data.confidenceEntry === "number") ? data.confidenceEntry : null;
+            const cExit  = (typeof data.confidenceExit  === "number") ? data.confidenceExit  : null;
+            let rawConf;
+            if (deltaPct > 0.3)      rawConf = cEntry ?? cExit;
+            else if (deltaPct < -0.3) rawConf = cExit ?? cEntry;
+            else                      rawConf = Math.max(cEntry ?? 0, cExit ?? 0) || null;
+            const confPct = (rawConf !== null && rawConf !== undefined) ? Math.round(rawConf * 100) : 0;
             document.getElementById("predictStars").textContent = buildConfidenceStars(confPct);
             document.getElementById("predictConfidence").textContent = `신뢰도 ${confPct}%`;
             document.getElementById("predictSummary").textContent = summaryText;
 
-            const sign = deltaPct >= 0 ? "+" : "";
-            document.getElementById("predictDeltaT1").textContent = `${sign}${deltaPct.toFixed(2)}%`;
-            document.getElementById("predictActual").textContent = actual.toLocaleString();
-            document.getElementById("predictedClose").textContent = predicted.toLocaleString();
-            document.getElementById("predictDirAcc").textContent = `${dirAcc}%`;
-            document.getElementById("predictMape").textContent = `${data.mape || 0}%`;
+            // 게이팅 컷 = 1 - 학습 통과율. 자신감 ≥ 컷 이면 신호 발동
+            const buyRatio = data.gateEntryTrainRatio;
+            const sellRatio = data.gateExitTrainRatio;
+            const buyCut = (buyRatio !== null && buyRatio !== undefined) ? (1 - buyRatio) * 100 : null;
+            const sellCut = (sellRatio !== null && sellRatio !== undefined) ? (1 - sellRatio) * 100 : null;
+            const buyCutEl = document.getElementById("gateBuyCut");
+            const sellCutEl = document.getElementById("gateSellCut");
+            if (buyCutEl) buyCutEl.textContent = (buyCut !== null) ? `${buyCut.toFixed(1)}%` : '-';
+            if (sellCutEl) sellCutEl.textContent = (sellCut !== null) ? `${sellCut.toFixed(1)}%` : '-';
 
-            // NEW [Model Version Routing]: 실제 사용 모델 + 폴백 경고
-            const actualModel = data.modelVersion || modelVersion;
-            const requestedModel = data.modelRequested || modelVersion;
-            const fellBack = data.modelFallback === true;
-            // "적용 모델" 배지에 실제/요청 둘 다 표시 (다르면 강조)
-            if (fellBack && requestedModel && requestedModel.toLowerCase() !== 'auto'
-                && actualModel !== requestedModel) {
-                document.getElementById("predictModelBadge").innerHTML =
-                    `<strong>${actualModel}</strong> <span style="color:#ffa502;">(요청: ${requestedModel} → 폴백)</span>`;
-            } else {
-                document.getElementById("predictModelBadge").textContent = actualModel;
-            }
-            // 노란 경고 배너 — 폴백 발동 시에만 표시
-            const warnEl = document.getElementById("predictModelWarning");
-            if (fellBack) {
-                warnEl.style.display = "block";
-                warnEl.innerHTML =
-                    `⚠️ ${requestedModel} 모델을 선택했으나 로드 실패로 ${actualModel} 모델이 자동 사용되었습니다.`;
-            } else {
-                warnEl.style.display = "none";
-                warnEl.innerHTML = "";
-            }
+            const cEntryPct = (typeof data.confidenceEntry === "number") ? data.confidenceEntry * 100 : null;
+            const cExitPct  = (typeof data.confidenceExit  === "number") ? data.confidenceExit  * 100 : null;
+            const buySig = data.buyEntrySignal;
+            const sellSig = data.sellExitSignal;
+            const buySigEl = document.getElementById("signalBuy");
+            const sellSigEl = document.getElementById("signalSell");
+            // ✓/✗ 판정은 응답의 실제 signal 값 (백테스팅과 동일 기준).
+            // 표시되는 자신감/컷은 시각적 비교용 (legacy 모델은 단위 약간 다름 — 새 모델 학습 권장).
+            if (buySigEl && (buySig === 0 || buySig === 1)) {
+                const cTxt = cEntryPct !== null ? `${cEntryPct.toFixed(0)}%` : '-';
+                buySigEl.textContent = buySig === 1 ? `✓ 발동 (자신감 ${cTxt})` : `✗ 죽은 신호 (자신감 ${cTxt})`;
+                buySigEl.style.color = buySig === 1 ? '#53cf60' : '#666';
+            } else if (buySigEl) { buySigEl.textContent = ''; }
+            if (sellSigEl && (sellSig === 0 || sellSig === 1)) {
+                const cTxt = cExitPct !== null ? `${cExitPct.toFixed(0)}%` : '-';
+                sellSigEl.textContent = sellSig === 1 ? `✓ 발동 (자신감 ${cTxt})` : `✗ 죽은 신호 (자신감 ${cTxt})`;
+                sellSigEl.style.color = sellSig === 1 ? '#cf5353' : '#666';
+            } else if (sellSigEl) { sellSigEl.textContent = ''; }
+
+            // 20260601: 자동 학습된 모델이면 라벨에 표시
+            const autoTrained = !!data.autoTrained;
+            document.getElementById("predictModelLabel").textContent =
+                autoTrained ? `${usedModel} (자동 학습됨 🆕)` : usedModel;
         } catch (e) {
-            alert("예측 실패: " + e.message);
+            stopLstmProgress();
+            qmToastError('AI 예측 실패', e.message);
         }
-        btn.disabled = false; btn.textContent = "🚀 AI에게 물어보기";
+        if (btnPredict) { btnPredict.disabled = false; btnPredict.textContent = "🚀 이 모델로 예측"; }
+        if (btnNew) { btnNew.disabled = false; btnNew.textContent = "🆕 새 모델 생성 + 예측"; }
+        // 새 모델이 학습됐으면 리스트 갱신
+        if (forceTrain) loadModelList();
     }
 
     // STEP4 20260527: AI 추천 탭 — manager(/api/recommend/run) 연동 + 로딩/진행률 + 심층 리포트
@@ -772,33 +2074,74 @@ async function loadStockData() {
         return safe;
     }
 
-    // report 본문에서 종목 이름 주변 문장 발췌 (카드 추천 이유용)
-    // FIX 20260528: 기존 indexOf(name)은 서론에 종목명 5개가 한꺼번에 나열되면
-    //   모든 종목이 동일한 서론 부분을 발췌하던 버그.
-    //   ① 종목명이 헤더(### / ## 라인) 안에 등장하는 위치를 최우선 검색 → 해당 섹션 본문 발췌.
-    //   ② 헤더 매칭 실패 시 lastIndexOf로 폴백 (서론 회피, 본문에서 마지막 등장 지점 사용).
-    function excerptForStock(report, name) {
-        if (!report || !name) return "";
-        const escName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const headerRe = new RegExp("^(#{2,4})[^\\n]*" + escName + "[^\\n]*$", "m");
-        const headerMatch = report.match(headerRe);
-        let start;
-        if (headerMatch) {
-            // 헤더 라인 끝 다음부터 본문 발췌
-            start = headerMatch.index + headerMatch[0].length;
-        } else {
-            // 헤더 매칭 실패: 마지막 등장 위치 사용 (서론의 일괄 나열 회피)
-            const last = report.lastIndexOf(name);
-            if (last < 0) return "";
-            start = last + name.length;
+    // 20260602: LLM 리포트가 누락/잘림인 종목에 대해 지표 데이터로 결정적 분석 카드 생성.
+    // Top5 카드가 절대 비지 않게 하기 위한 안전망. RSI/BB/MACD/거래량 신호를 한국어 자연어로.
+    function renderFallbackAnalysis(s, change, scoreLabel) {
+        const name = s.name || s.ticker;
+        const rsi = Number(s.rsi);
+        const volR = Number(s.vol_ratio);
+        const macdStatus = s.macd_status || '-';
+        let rsiCmt = '';
+        if (!isNaN(rsi)) {
+            if (rsi < 30) rsiCmt = `RSI ${rsi.toFixed(1)}로 과매도 구간에 진입해 단기 반등 가능성이 있습니다.`;
+            else if (rsi < 45) rsiCmt = `RSI ${rsi.toFixed(1)}로 약세권에 머물러 저점 매수 시점을 탐색할 수 있는 구간입니다.`;
+            else if (rsi <= 55) rsiCmt = `RSI ${rsi.toFixed(1)}로 중립권에 위치해 추세 방향이 아직 결정되지 않은 상태입니다.`;
+            else if (rsi <= 70) rsiCmt = `RSI ${rsi.toFixed(1)}로 상승 모멘텀이 살아있으나 단기 과열 신호를 함께 점검할 필요가 있습니다.`;
+            else rsiCmt = `RSI ${rsi.toFixed(1)}로 과매수 구간이라 단기 차익 매물 출회 가능성에 유의해야 합니다.`;
         }
-        let raw = report.slice(start, start + 700);
-        // 다음 종목 섹션(헤더 또는 `---` 구분선) 전까지만 사용
-        const nextBoundary = raw.search(/\n#{2,4}\s|\n-{3,}\s*\n/);
-        if (nextBoundary > 0) raw = raw.slice(0, nextBoundary);
-        let chunk = raw.replace(/[#*`>\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
-        if (!chunk) return "";
-        return chunk.length > 140 ? chunk.slice(0, 140) + "…" : chunk;
+        let volCmt = '';
+        if (!isNaN(volR)) {
+            if (volR > 2.0) volCmt = `거래량은 평소의 ${volR.toFixed(2)}배로 급증해 시장 관심이 집중되고 있습니다.`;
+            else if (volR > 1.3) volCmt = `거래량은 평소의 ${volR.toFixed(2)}배 수준으로 수급 개선 흐름이 관찰됩니다.`;
+            else if (volR >= 0.8) volCmt = `거래량은 평소의 ${volR.toFixed(2)}배로 평이한 흐름을 보이고 있습니다.`;
+            else volCmt = `거래량은 평소의 ${volR.toFixed(2)}배로 둔화돼 관망세가 짙은 상태입니다.`;
+        }
+        const macdCmt = macdStatus === '상승'
+            ? `MACD가 시그널선 위에 위치해 단기 추세는 상승 우위입니다.`
+            : (macdStatus === '조정'
+                ? `MACD가 시그널선 아래에 위치해 단기적으로는 조정 흐름이 우세합니다.`
+                : `MACD 신호는 중립 상태입니다.`);
+        const chgCmt = change >= 0
+            ? `최근 ${change.toFixed(2)}% 상승으로 단기 모멘텀이 양호한 편입니다.`
+            : `최근 ${change.toFixed(2)}% 하락하며 단기 약세를 보였습니다.`;
+        const closing = `종합 매력도는 ${scoreLabel}으로, 지표 기반 폴백 요약입니다(LLM 본문 누락 시 자동 생성).`;
+        const parts = [
+            `<h3>${name}(${s.ticker}) 지표 기반 분석</h3>`,
+            `<p>${chgCmt} ${rsiCmt}</p>`,
+            `<p>${volCmt} ${macdCmt}</p>`,
+            `<p><em>${closing}</em></p>`
+        ];
+        return parts.join('');
+    }
+
+    // FIX 20260602: 종목별 섹션 분리. 이전 excerptForStock 은 헤더가 없는 종목이면
+    //   lastIndexOf(name) 으로 폴백 → 다른 종목 본문 한가운데서 시작해 다음 헤더 전까지
+    //   가져오면서 2번부터 뒤죽박죽으로 보이던 문제를 해결.
+    //   5개 이름의 위치를 한 번에 찾아 정렬한 뒤, 인접 종목 시작점으로 끝을 잘라낸다.
+    function buildExcerpts(report, names) {
+        if (!report || !names || !names.length) return {};
+        const positions = [];
+        names.forEach(name => {
+            if (!name) return;
+            const escName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const headerRe = new RegExp("^#{2,4}[^\\n]*" + escName + "[^\\n]*$", "m");
+            const m = report.match(headerRe);
+            if (m) {
+                positions.push({ name, start: m.index, contentStart: m.index + m[0].length });
+                return;
+            }
+            const idx = report.indexOf(name);
+            if (idx >= 0) positions.push({ name, start: idx, contentStart: idx + name.length });
+        });
+        positions.sort((a, b) => a.start - b.start);
+        const result = {};
+        positions.forEach((p, i) => {
+            const end = (i + 1 < positions.length) ? positions[i + 1].start : report.length;
+            let section = report.slice(p.contentStart, end).trim();
+            if (section.length > 3500) section = section.slice(0, 3500) + "\n\n…(이하 생략)";
+            result[p.name] = section;
+        });
+        return result;
     }
 
     // 시간 기반 진행률 추정 (Step 3 실측: extract~13s, engine~80s, agent~263s, total~356s)
@@ -853,10 +2196,11 @@ async function loadStockData() {
         btn.disabled = true; btn.textContent = "⏳ 분석 중...";
         document.getElementById("agentResultCard").style.display = "block";
         document.getElementById("agentLoading").style.display = "block";
-        document.getElementById("agentRecList").innerHTML = "";
+        // PASS 6: skeleton 5 placeholder 카드를 미리 그려 layout 안정 + "곧 채워질 것" 느낌.
+        document.getElementById("agentRecList").innerHTML = qmSkeletonRecCards(5);
         document.getElementById("agentSummaryBox").style.display = "none";
-        const reportBox = document.getElementById("agentReportBox");
-        if (reportBox) reportBox.style.display = "none";
+        const othersBox = document.getElementById("agentOthersBox");
+        if (othersBox) othersBox.style.display = "none";
         startAgentProgress();
         try {
             const res = await fetch(`${API}/recommend/run`, {
@@ -870,21 +2214,32 @@ async function loadStockData() {
 
             // 502 등 실패: ApiResponse.success=false + message 에 에러 내용
             if (!res.ok || !result.success) {
-                document.getElementById("agentRecList").innerHTML =
-                    `<div class="error">추천 실패: ${result.message || '응답 없음'}</div>`;
+                // PASS 6: 친절한 에러 카드 + 다시 시도 버튼
+                document.getElementById("agentRecList").innerHTML = qmErrorState({
+                    title: 'AI 추천을 가져오지 못했어요',
+                    msg: (result.message || '서버 응답이 없습니다. 잠시 후 다시 시도해 주세요.'),
+                    onRetry: () => window.runAgent()
+                });
+                qmToastError('추천 실패', result.message || '서버 응답 없음');
                 btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기"; return;
             }
             let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
             if (!data || data.error) {
-                document.getElementById("agentRecList").innerHTML =
-                    `<div class="error">추천 실패: ${(data && data.error) ? data.error : '응답 없음'}</div>`;
+                document.getElementById("agentRecList").innerHTML = qmErrorState({
+                    title: '추천 결과를 해석할 수 없어요',
+                    msg: (data && data.error) ? data.error : '응답 형식이 이상합니다.',
+                    onRetry: () => window.runAgent()
+                });
+                qmToastError('추천 실패', (data && data.error) ? data.error : '응답 형식 오류');
                 btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기"; return;
             }
 
             const stocks = (data.scored_stocks || []);
             const top = stocks.slice(0, 5);
+            const others = stocks.slice(5, 50); // TOP 6 ~ 50 (45개)
             const validScores = top.map(s => Number(s.score)).filter(v => !isNaN(v));
             const maxScore = validScores.length ? Math.max(...validScores, 1) : 1;
+            const excerpts = buildExcerpts(data.report, top.map(s => s.name));
             let html = "";
             top.forEach((s, i) => {
                 const rank = i + 1;
@@ -894,10 +2249,14 @@ async function loadStockData() {
                 const stars = hasScore ? scoreToStars(scoreNum, maxScore) : "○○○○○";
                 const scoreLabel = hasScore ? `${scoreNum}점` : "점수 미산출";
                 const change = Number(s.price_chg) || 0;
-                const excerpt = excerptForStock(data.report, s.name);
-                const reason = excerpt
-                    ? `📝 ${excerpt}`
-                    : `📝 최근 변동 ${change >= 0 ? '+' : ''}${change}%, RSI ${s.rsi}, 거래량 ${s.vol_ratio}배, MACD ${s.macd_status || '-'}. 모멘텀 점수 ${scoreLabel} 종목입니다.`;
+                const excerpt = excerpts[s.name] || "";
+                const reason = `📝 최근 변동 ${change >= 0 ? '+' : ''}${change}%, RSI ${s.rsi}, 거래량 ${s.vol_ratio}배, MACD ${s.macd_status || '-'}. 모멘텀 점수 ${scoreLabel}.`;
+                // 20260602: LLM refine_report 가 토큰 캡에 걸려 뒷 종목 섹션이 빈/1줄로 잘리는 경우,
+                //   지표 데이터만으로 안정적인 폴백 분석 카드를 채워 Top5 가 절대 비지 않게 보장.
+                const isExcerptUsable = excerpt && excerpt.replace(/[\s#*\-]/g, '').length >= 40;
+                const deepHtml = isExcerptUsable
+                    ? renderReportMarkdown(excerpt)
+                    : renderFallbackAnalysis(s, change, scoreLabel);
                 html += `
                     <article class="rec-card ${rankClass}">
                         <header>
@@ -906,15 +2265,43 @@ async function loadStockData() {
                             <span class="score">매력도 ${stars} (${scoreLabel})</span>
                         </header>
                         <p class="reason">${reason}</p>
+                        <div class="deep" onclick="this.classList.toggle('expanded')">
+                            <h4>🔍 심층 분석</h4>
+                            ${deepHtml}
+                            <div class="toggle-hint">▾ 클릭하여 펼치기 / 마우스 올리면 자동 펼침</div>
+                        </div>
                     </article>`;
             });
             if (!html) html = '<div class="loading">추천 결과가 없습니다.</div>';
             document.getElementById("agentRecList").innerHTML = html;
 
-            // 심층 리포트 전체 (토글)
-            if (reportBox && data.report) {
-                document.getElementById("agentReportContent").innerHTML = renderReportMarkdown(data.report);
-                reportBox.style.display = "block";
+            // TOP 6 ~ 50 추가 후보 45종목 (토글)
+            const othersBoxEl = document.getElementById("agentOthersBox");
+            if (othersBoxEl && others.length) {
+                const othersValidScores = others.map(s => Number(s.score)).filter(v => !isNaN(v));
+                const othersMaxScore = othersValidScores.length ? Math.max(...othersValidScores, 1) : 1;
+                let oHtml = `<table class="others-table">
+                    <tr><th>#</th><th>종목</th><th class="num">점수</th><th class="num">변동률</th><th class="num">RSI</th><th class="num">거래량비</th><th>MACD</th></tr>`;
+                others.forEach((s, i) => {
+                    const rank = i + 6;
+                    const chg = Number(s.price_chg) || 0;
+                    const chgClass = chg >= 0 ? 'pos' : 'neg';
+                    const sc = (s.score !== null && s.score !== undefined && !isNaN(Number(s.score))) ? Number(s.score).toFixed(1) : '-';
+                    oHtml += `<tr>
+                        <td>${rank}</td>
+                        <td><strong>${s.ticker}</strong> ${s.name || ''}</td>
+                        <td class="num">${sc}</td>
+                        <td class="num ${chgClass}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</td>
+                        <td class="num">${s.rsi != null ? Number(s.rsi).toFixed(1) : '-'}</td>
+                        <td class="num">${s.vol_ratio != null ? Number(s.vol_ratio).toFixed(2) + '배' : '-'}</td>
+                        <td>${s.macd_status || '-'}</td>
+                    </tr>`;
+                });
+                oHtml += '</table>';
+                document.getElementById("agentOthersContent").innerHTML = oHtml;
+                othersBoxEl.querySelector('summary').textContent =
+                    `📋 TOP 6 ~ ${5 + others.length} 추가 후보 보기 (${others.length}종목)`;
+                othersBoxEl.style.display = "block";
             }
 
             // 종합 의견 + 소요시간 안내
@@ -927,11 +2314,16 @@ async function loadStockData() {
                 + (totalSec ? ` (분석 ${totalSec}초 소요).` : '.')
                 + ` 본 결과는 참고용이며, 실제 투자는 사용자 판단에 따릅니다.`;
             document.getElementById("agentSummaryBox").style.display = "block";
+            qmToastSuccess('추천 도착', `상위 ${top.length}개 종목 분석 완료${totalSec ? ` · ${totalSec}초` : ''}`);
         } catch (e) {
             stopAgentProgress(false);
             document.getElementById("agentLoading").style.display = "none";
-            document.getElementById("agentRecList").innerHTML =
-                `<div class="error">AI Agent 실패: ${e.message}</div>`;
+            document.getElementById("agentRecList").innerHTML = qmErrorState({
+                title: 'AI Agent 호출 실패',
+                msg: e.message,
+                onRetry: () => window.runAgent()
+            });
+            qmToastError('추천 실패', e.message);
         }
         btn.disabled = false; btn.textContent = "✨ AI Agent에게 추천받기";
     }
@@ -944,13 +2336,30 @@ async function loadStockData() {
     async function loadStockCodes() {
         if (_stockCodesCache) return _stockCodesCache;
         try {
-            const res = await fetch('/stock_codes.json');
+            // cache-busting: 옛 stock_codes.json 캐시 무효화 (한 페이지 내에선 _stockCodesCache 로 재사용)
+            const res = await fetch('/stock_codes.json?v=' + Date.now(), { cache: 'no-store' });
             const json = await res.json();
             _stockCodesCache = json.stocks || [];
         } catch (e) {
             _stockCodesCache = [];
         }
         return _stockCodesCache;
+    }
+
+    // matches 그대로 그리면 브라우저가 수천개 DOM 만들어 느려짐 → 50개로 제한
+    const AUTOCOMPLETE_MAX = 50;
+    function _trimAutocomplete(matches, q) {
+        if (!matches) return [];
+        // 정확 일치 우선 (code 정확 / name 시작) — 사용자가 찾는 거 위에 보이게
+        const exact = []; const startsWith = []; const includes = [];
+        for (const s of matches) {
+            const code = (s.code || '').toLowerCase();
+            const name = (s.name || '').toLowerCase();
+            if (code === q || name === q) exact.push(s);
+            else if (code.startsWith(q) || name.startsWith(q)) startsWith.push(s);
+            else includes.push(s);
+        }
+        return [...exact, ...startsWith, ...includes].slice(0, AUTOCOMPLETE_MAX);
     }
 
     function renderAutocomplete(matches) {
@@ -977,11 +2386,11 @@ async function loadStockData() {
         const q = (e.target.value || '').trim().toLowerCase();
         _autocompleteDebounceTimer = setTimeout(async () => {
             const stocks = await loadStockCodes();
-            if (!q) { renderAutocomplete(stocks); return; }
+            if (!q) { renderAutocomplete(stocks.slice(0, AUTOCOMPLETE_MAX)); return; }
             const matches = stocks.filter(s =>
                 s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
             );
-            renderAutocomplete(matches);
+            renderAutocomplete(_trimAutocomplete(matches, q));
         }, 300);
     }
 
@@ -1017,11 +2426,18 @@ async function loadStockData() {
         input.addEventListener('input', onTickerInput);
         input.addEventListener('focus', onTickerInput);
         input.addEventListener('keydown', onTickerKeydown);
+        let _verifyDebounce = null;
+        input.addEventListener('change', () => {
+            clearTimeout(_verifyDebounce);
+            _verifyDebounce = setTimeout(() => loadVerifyModelList(), 200);
+        });
         document.addEventListener('click', (e) => {
             if (e.target.id !== 'verifyTicker') {
                 document.getElementById('verifyAutocomplete').classList.remove('show');
             }
         });
+        // 페이지 진입 시 1회 자동 로드
+        loadVerifyModelList();
     }
 
     // FIX 20260523: AI 예측 탭(#tickerInput) 자동완성 — 검증 도구와 동일 패턴.
@@ -1059,11 +2475,11 @@ async function loadStockData() {
         const q = (e.target.value || '').trim().toLowerCase();
         _predictAcDebounceTimer = setTimeout(async () => {
             const stocks = await loadStockCodes();
-            if (!q) { renderPredictAutocomplete(stocks); return; }
+            if (!q) { renderPredictAutocomplete(stocks.slice(0, AUTOCOMPLETE_MAX)); return; }
             const matches = stocks.filter(s =>
                 s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
             );
-            renderPredictAutocomplete(matches);
+            renderPredictAutocomplete(_trimAutocomplete(matches, q));
         }, 300);
     }
 
@@ -1111,23 +2527,26 @@ async function loadStockData() {
     async function runVerify() {
         const btn = document.getElementById('runVerifyBtn');
         const code = (document.getElementById('verifyTicker').value || 'KS11').trim();
-        const modelVersion = document.getElementById('verifyModelVersion').value;
         const startDate = document.getElementById('verifyStart').value;
         const endDate = document.getElementById('verifyEnd').value;
-        if (!startDate || !endDate) { alert('시작일과 종료일을 모두 선택하세요'); return; }
-        if (startDate >= endDate) { alert('시작일은 종료일보다 이전이어야 합니다'); return; }
+        if (!startDate || !endDate) { qmToastWarning('입력 확인', '시작일과 종료일을 모두 선택하세요.'); return; }
+        if (startDate >= endDate) { qmToastWarning('날짜 순서', '시작일은 종료일보다 이전이어야 합니다.'); return; }
+        if (!_verifySelectedModelId) {
+            qmToastWarning('모델 미선택', '검증할 모델이 선택되지 않았습니다. 위 리스트에서 모델을 먼저 선택해주세요.');
+            return;
+        }
         btn.disabled = true; btn.textContent = '⏳ 검증 중...';
         try {
             const res = await fetch(`${API}/backtest/verify`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({code, modelVersion, startDate, endDate})
+                body: JSON.stringify({code, startDate, endDate, modelId: _verifySelectedModelId})
             });
             const result = await res.json();
             let data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
             if (!data || data.error) {
-                alert('검증 실패: ' + ((data && data.error) ? data.error : '응답 없음'));
-                btn.disabled = false; btn.textContent = '🎯 검증 실행'; return;
+                qmToastError('모델 검증 실패', (data && data.error) ? data.error : '응답이 없습니다.');
+                btn.disabled = false; btn.textContent = '🎯 이 모델로 검증 실행'; return;
             }
             document.getElementById('verifyResult').style.display = 'block';
 
@@ -1136,17 +2555,26 @@ async function loadStockData() {
             const improvement = Number(data.improvement) || 0;
             const avgConf = Number(data.avgConfidence) || 0;
             const samples = Number(data.samplesEvaluated) || 0;
-            // FIX 20260528: '평균 신뢰도' 칸이 avgConfidence(~0.0002)를 곱해 항상 0.0%로 보이던 버그.
-            //   V5 Confidence Gating 통과율(gating_ratio)로 교체. (예: 0.9793 → 97.9%)
-            //   gating 미적용 모델(V2~V4)일 때는 종전 avgConf로 폴백.
+            // 20260603 RELABEL: "신호 발생률" = gating_ratio (Gating 통과 표본 비율).
+            //   - V5/V6: gating_ratio 사용 (예: 0.65 → "65.0%")
+            //   - V2~V4 (게이팅 미적용): "—" 표시 (avgConf 곱 의미 없음)
             const gatingApplied = !!data.confidence_gating_applied;
             const gatingRatio = (typeof data.gating_ratio === "number") ? data.gating_ratio : null;
-            const confPct = (gatingApplied && gatingRatio !== null)
-                ? (gatingRatio * 100)
-                : (avgConf * 100);
+            let signalRateText = '—';
+            if (gatingApplied && gatingRatio !== null) {
+                const pct = gatingRatio * 100;
+                signalRateText = `${pct.toFixed(1)}%`;
+            }
 
             document.getElementById('vsDirAcc').textContent = `${dirAcc.toFixed(1)}%`;
-            document.getElementById('vsAvgConf').textContent = `${confPct.toFixed(1)}%`;
+            document.getElementById('vsAvgConf').textContent = signalRateText;
+            // 100% (게이팅 미발동) 일 때 톤다운 — "사실상 OFF" 시각 신호
+            const vsConfCard = document.getElementById('vsAvgConf').parentElement;
+            vsConfCard.classList.remove('improved', 'regressed');
+            if (gatingApplied && gatingRatio !== null) {
+                if (gatingRatio >= 0.98) vsConfCard.classList.add('regressed');       // 거의 다 통과 → 게이팅 효과 X
+                else if (gatingRatio >= 0.50 && gatingRatio <= 0.85) vsConfCard.classList.add('improved');  // 의미 있는 필터링 구간
+            }
             document.getElementById('vsNaive').textContent = `${naive.toFixed(1)}%`;
             document.getElementById('vsImprove').textContent = `${improvement >= 0 ? '+' : ''}${improvement.toFixed(1)}%p`;
             document.getElementById('vsSamples').textContent = samples.toLocaleString();
@@ -1164,8 +2592,10 @@ async function loadStockData() {
             else if (period === 'mixed') periodEl.textContent = '⚠️ 학습/테스트 경계 걸침 — 해석 주의';
             else periodEl.textContent = '? 구간 판정 불가';
 
+            const usedModel = data.modelVersion || '-';
+            document.getElementById('verifyModelLabel').textContent = usedModel;
             document.getElementById('vsBaselineCompare').innerHTML =
-                `naive baseline <strong>${naive.toFixed(1)}%</strong> vs ${data.modelVersion || modelVersion} <strong>${dirAcc.toFixed(1)}%</strong> — ` +
+                `naive baseline <strong>${naive.toFixed(1)}%</strong> vs ${usedModel} <strong>${dirAcc.toFixed(1)}%</strong> — ` +
                 `<span class="bc-improve" style="color:${improvement >= 0 ? '#53cf60' : '#cf5353'}">${improvement >= 0 ? '+' : ''}${improvement.toFixed(1)}%p ${improvement >= 0 ? '개선' : '저하'}</span>`;
 
             // NEW [Split Alignment]: 학습 코드와 동일한 windowed 80/20. val 없음 → vsValRange 안내문 유지(JS 갱신 X).
@@ -1180,9 +2610,13 @@ async function loadStockData() {
             // NEW UI 20260522: 검증 결과를 누적 저장 후 대시보드 갱신
             // FIX 20260523: 신뢰도필터 컬럼이 avgConfidence(평균 변동률)를 잘못 가리키던 버그 수정.
             //               V5 게이팅 메타(gatingRatio, gatingApplied 등)를 함께 저장해 표에서 정확히 표시.
+            // "모델" 컬럼은 modelVersion(V6) 대신 사용한 modelId(timestamp). legacy 만 폴백.
+            const modelLabel = (_verifySelectedModelId && _verifySelectedModelId !== 'legacy')
+                ? _verifySelectedModelId
+                : `${usedModel} (legacy)`;
             saveVerifyRecord({
                 directionAccuracy: dirAcc,
-                model: data.modelVersion || modelVersion,
+                model: modelLabel,
                 code: code,
                 startDate: startDate,
                 endDate: endDate,
@@ -1198,15 +2632,215 @@ async function loadStockData() {
                 verifiedAt: new Date().toISOString()
             });
             loadVerifyHistory();
+            qmToastSuccess('검증 완료', `${code} · 방향정확도 ${dirAcc.toFixed(1)}% (${usedModel})`);
         } catch (e) {
-            alert('검증 실패: ' + e.message);
+            qmToastError('모델 검증 실패', e.message);
         }
-        btn.disabled = false; btn.textContent = '🎯 검증 실행';
+        btn.disabled = false; btn.textContent = '🎯 이 모델로 검증 실행';
     }
 
     document.addEventListener('DOMContentLoaded', initVerifyAutocomplete);
     // FIX 20260523: AI 예측 탭 자동완성도 페이지 로드 시 활성화 (검증 도구와 독립 인스턴스)
     document.addEventListener('DOMContentLoaded', initPredictAutocomplete);
+
+    // NEW 20260531: 패턴 시뮬레이터 탭 자동완성 + fetch + Plotly 차트
+    let _simAcDebounceTimer = null;
+    let _simAcActiveIdx = -1;
+    let _simLastResult = null; // 투자금액 변경 시 카드 재계산용
+
+    function renderSimAutocomplete(matches) {
+        const dd = document.getElementById('simTickerAutocomplete');
+        if (!matches.length) { dd.classList.remove('show'); dd.innerHTML = ''; return; }
+        dd.innerHTML = matches.map((s, i) =>
+            `<div class="autocomplete-item" data-code="${s.code}" data-idx="${i}">
+                <span class="ac-code">${s.code}</span><span class="ac-name">${s.name}</span><span class="ac-market">${s.market}</span>
+            </div>`
+        ).join('');
+        dd.classList.add('show');
+        _simAcActiveIdx = -1;
+        dd.querySelectorAll('.autocomplete-item').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                document.getElementById('simTickerInput').value = el.dataset.code;
+                dd.classList.remove('show');
+            });
+        });
+    }
+
+    async function onSimTickerInput(e) {
+        clearTimeout(_simAcDebounceTimer);
+        const q = (e.target.value || '').trim().toLowerCase();
+        _simAcDebounceTimer = setTimeout(async () => {
+            const stocks = await loadStockCodes();
+            if (!q) { renderSimAutocomplete(stocks.slice(0, AUTOCOMPLETE_MAX)); return; }
+            const matches = stocks.filter(s =>
+                s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+            );
+            renderSimAutocomplete(_trimAutocomplete(matches, q));
+        }, 300);
+    }
+
+    function onSimTickerKeydown(e) {
+        const dd = document.getElementById('simTickerAutocomplete');
+        if (!dd.classList.contains('show')) return;
+        const items = dd.querySelectorAll('.autocomplete-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            _simAcActiveIdx = Math.min(_simAcActiveIdx + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            _simAcActiveIdx = Math.max(_simAcActiveIdx - 1, 0);
+        } else if (e.key === 'Enter' && _simAcActiveIdx >= 0) {
+            e.preventDefault();
+            const sel = items[_simAcActiveIdx];
+            document.getElementById('simTickerInput').value = sel.dataset.code;
+            dd.classList.remove('show');
+            return;
+        } else if (e.key === 'Escape') {
+            dd.classList.remove('show');
+            return;
+        } else {
+            return;
+        }
+        items.forEach((el, i) => el.classList.toggle('active', i === _simAcActiveIdx));
+    }
+
+    function initSimAutocomplete() {
+        const input = document.getElementById('simTickerInput');
+        if (!input) return;
+        input.addEventListener('input', onSimTickerInput);
+        input.addEventListener('focus', onSimTickerInput);
+        input.addEventListener('keydown', onSimTickerKeydown);
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'simTickerInput') {
+                const dd = document.getElementById('simTickerAutocomplete');
+                if (dd) dd.classList.remove('show');
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', initSimAutocomplete);
+
+    function updateSimulatorScenarioCards() {
+        if (!_simLastResult) return;
+        const amountEl = document.getElementById('simInvestAmount');
+        const amount = Math.max(0, parseInt(amountEl.value || '0', 10) || 0);
+        const bullPct = _simLastResult.bull_scenario.pct;
+        const bearPct = _simLastResult.bear_scenario.pct;
+        const upside = Math.round(amount * (1 + (bullPct / 100)));
+        const downside = Math.round(amount * (1 + (bearPct / 100)));
+        document.getElementById('simBullValue').textContent = upside.toLocaleString() + ' 원';
+        document.getElementById('simBullPct').textContent = (bullPct >= 0 ? '+' : '') + bullPct.toFixed(2) + '%';
+        document.getElementById('simBearValue').textContent = downside.toLocaleString() + ' 원';
+        document.getElementById('simBearPct').textContent = (bearPct >= 0 ? '+' : '') + bearPct.toFixed(2) + '%';
+    }
+
+    // AItr_simulator/src/visualizer.py generate_chart() 그대로 Plotly.js 이식.
+    // 백엔드(pattern_match_service.py)가 bull/bear 각각 scale_ratio 적용한 past+future 배열을 보내준다.
+    function renderSimulatorChart(res) {
+        const div = document.getElementById('simPatternChart');
+        const current = (res.df_current_close_array || []).filter(v => v !== null);
+        const winLen = current.length;
+        const xCurrent = current.map((_, i) => i);
+        const traces = [];
+
+        // 1) 현재 주가 라인 (cyan, 굵게)
+        traces.push({
+            x: xCurrent, y: current, mode: 'lines', name: '현재 주가 흐름',
+            line: { color: QM.cyan, width: 4, shape: 'spline', smoothing: 0.6 }
+        });
+
+        // visualizer.py plot_scenario() 1:1 변환
+        function plotScenario(scn, name, color) {
+            if (!scn || !scn.matched_pattern_close_array || !scn.matched_pattern_close_array.length) return;
+            const matched = scn.matched_pattern_close_array.filter(v => v !== null);
+            const past_date_str = scn.matched_start_date || '';
+
+            // 2/4) 과거 유사 패턴 오버레이 (점선 dash, opacity 0.45)
+            traces.push({
+                x: matched.map((_, i) => i), y: matched, mode: 'lines',
+                name: `${name} 과거 패턴 (${past_date_str} ~)`,
+                line: { color: color, width: 2, dash: 'dash', shape: 'spline', smoothing: 0.6 },
+                opacity: 0.45
+            });
+
+            // 3/5) 미래 범위 추정 (dot, width 3)
+            const future = scn.future_close_array.filter(v => v !== null);
+            if (future.length) {
+                const xFuture = [];
+                for (let i = 0; i < future.length; i++) xFuture.push(winLen - 1 + i);
+                traces.push({
+                    x: xFuture, y: future, mode: 'lines',
+                    name: `${name} 범위 추정`,
+                    line: { color: color, width: 3, dash: 'dot', shape: 'spline', smoothing: 0.6 }
+                });
+            }
+        }
+        plotScenario(res.bull_scenario, '🟢 상승(Bull)', QM.success);
+        plotScenario(res.bear_scenario, '🔴 하락(Bear)', QM.danger);
+
+        const layout = {
+            title: { text: '패턴 매칭 + 미래 추정', font: { color: QM.cyan, size: 14, family: QM.font } },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: QM.font, color: QM.text },
+            xaxis: {
+                title: { text: '거래일 (0 = 패턴 시작점)', font: { color: QM.textMuted, size: 11 } },
+                color: QM.textMuted, gridcolor: QM.grid, zerolinecolor: QM.border, linecolor: QM.border,
+                tickfont: { color: QM.textMuted, size: 11 }
+            },
+            yaxis: {
+                title: { text: '스케일 조정된 주가 (원)', font: { color: QM.textMuted, size: 11 } },
+                color: QM.textMuted, gridcolor: QM.grid, zerolinecolor: QM.border, linecolor: QM.border,
+                tickfont: { color: QM.textMuted, size: 11 }
+            },
+            legend: { orientation: 'h', y: 1.12, x: 0, font: { color: QM.text, family: QM.font, size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
+            hoverlabel: { bgcolor: 'rgba(7,7,15,0.95)', bordercolor: QM.cyan, font: { family: QM.font, color: QM.text, size: 12 } },
+            hovermode: 'x unified',
+            height: 500,
+            margin: { l: 70, r: 30, t: 80, b: 50 }
+        };
+        Plotly.newPlot(div, traces, layout, { responsive: true, displayModeBar: false });
+    }
+
+    async function runSimulatorMatch() {
+        const btn = document.getElementById('runSimMatchBtn');
+        const ticker = (document.getElementById('simTickerInput').value || '').trim();
+        const predictionDays = parseInt(document.getElementById('simPredictionDays').value || '20', 10);
+        if (!ticker) { qmToastWarning('입력 필요', '종목 코드를 입력하세요.'); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ 분석 중...';
+        document.getElementById('simStatus').style.display = 'flex';
+        document.getElementById('simSuccessMsg').style.display = 'none';
+        document.getElementById('simResultCard').style.display = 'none';
+        document.getElementById('simChartCard').style.display = 'none';
+
+        try {
+            const res = await fetch(`${API}/simulator/match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: ticker, prediction_days: predictionDays })
+            });
+            const result = await res.json();
+            if (!result.success) throw new Error(result.message || '분석 실패');
+            const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+            if (data.error) throw new Error(data.error);
+
+            _simLastResult = data;
+            document.getElementById('simSuccessMsg').textContent =
+                `분석 완료! 가장 유사한 과거 시점: ${data.matched_start_date} (일치도 ${data.similarity_pct.toFixed(1)}%)`;
+            document.getElementById('simSuccessMsg').style.display = 'block';
+            document.getElementById('simResPredDays').textContent = data.prediction_days;
+            document.getElementById('simResultCard').style.display = 'block';
+            document.getElementById('simChartCard').style.display = 'block';
+            updateSimulatorScenarioCards();
+            renderSimulatorChart(data);
+        } catch (e) {
+            qmToastError('패턴 분석 실패', e.message);
+        }
+        document.getElementById('simStatus').style.display = 'none';
+        btn.disabled = false; btn.textContent = '🎯 패턴 분석 시작';
+    }
 
     /* =====================================================================
      * NEW UI 20260522: 모델 성능 검증 누적(localStorage) + 시스템 요약 4개 카드 갱신
@@ -1255,17 +2889,27 @@ async function loadStockData() {
     }
 
     function renderSystemSummary(history) {
+        // PASS 5: 4개 카드 모두에서 .qm-empty 클래스 토글 + sparkline 클리어/렌더
+        const cards = document.querySelectorAll('#tab-home .stats-grid .stat-item');
         if (!history.length) {
-            document.getElementById("avgDirAcc").textContent = "-";
+            document.getElementById("avgDirAcc").textContent = "—";
             document.getElementById("avgDirAccSub").textContent = "검증 결과 누적 기준 · 데이터 없음";
-            document.getElementById("baselineImprove").textContent = "-";
+            document.getElementById("baselineImprove").textContent = "—";
             document.getElementById("verifiedTickers").textContent = "0";
             document.getElementById("verifiedTickersSub").textContent = "아직 검증된 종목 없음";
-            document.getElementById("verifyPeriodSummary").textContent = "-";
+            document.getElementById("verifyPeriodSummary").textContent = "—";
             document.getElementById("verifyPeriodSub").textContent = "검증을 실행해 주세요";
             document.getElementById("card-improvement").classList.remove("improved", "regressed");
+            cards.forEach(c => c.classList.add('qm-empty'));
+            ['spark-avgDirAcc','spark-baselineImprove','spark-verifiedTickers','spark-verifyPeriodSummary']
+                .forEach(id => { const el = document.getElementById(id); if (el) { el.innerHTML=''; el.classList.remove('qm-on'); } });
             return;
         }
+        cards.forEach(c => c.classList.remove('qm-empty'));
+
+        // history 는 최신부터일 수도 있고 오래된 것부터일 수도 있다 — 시간순 정렬해서 sparkline 시계열로 사용
+        const sorted = [...history].sort((a, b) => (a.savedAt || a.endDate || '').localeCompare(b.savedAt || b.endDate || ''));
+        const last = sorted.slice(-10);  // 최근 10건만 sparkline 에 표시
 
         // ① 평균 방향정확도
         const avgDir = history.reduce((s, r) => s + (Number(r.directionAccuracy) || 0), 0) / history.length;
@@ -1273,6 +2917,7 @@ async function loadStockData() {
         const uniqueModels = [...new Set(history.map(r => r.model))];
         document.getElementById("avgDirAccSub").textContent =
             `${history.length}건 누적 · ${uniqueModels.length === 1 ? uniqueModels[0] + " 모델" : uniqueModels.length + "개 모델"} 기준`;
+        qmRenderSparkline('spark-avgDirAcc', last.map(r => Number(r.directionAccuracy)).filter(v => isFinite(v)));
 
         // ② baseline 개선폭 (평균)
         const validImp = history.filter(r => typeof r.improvement === "number" && !isNaN(r.improvement));
@@ -1283,11 +2928,13 @@ async function loadStockData() {
             const card = document.getElementById("card-improvement");
             card.classList.toggle("improved", avgImp > 0);
             card.classList.toggle("regressed", avgImp < 0);
+            qmRenderSparkline('spark-baselineImprove', last.map(r => Number(r.improvement)).filter(v => isFinite(v)));
         } else {
-            document.getElementById("baselineImprove").textContent = "-";
+            document.getElementById("baselineImprove").textContent = "—";
+            const sp = document.getElementById('spark-baselineImprove'); if (sp) { sp.innerHTML=''; sp.classList.remove('qm-on'); }
         }
 
-        // ③ 검증 종목 수
+        // ③ 검증 종목 수 — sparkline 은 시간에 따른 누적 unique ticker 카운트
         const tickers = [...new Set(history.map(r => r.code).filter(Boolean))];
         document.getElementById("verifiedTickers").textContent = tickers.length + "종목";
         if (tickers.length === 1) {
@@ -1296,6 +2943,10 @@ async function loadStockData() {
             document.getElementById("verifiedTickersSub").textContent =
                 `${tickers[0]} 외 ${tickers.length - 1}종`;
         }
+        const cumulativeTickers = [];
+        const seen = new Set();
+        sorted.forEach(r => { if (r.code) seen.add(r.code); cumulativeTickers.push(seen.size); });
+        qmRenderSparkline('spark-verifiedTickers', cumulativeTickers.slice(-10));
 
         // ④ 검증 기간 (최소 startDate ~ 최대 endDate)
         const starts = history.map(r => r.startDate).filter(Boolean).sort();
@@ -1305,8 +2956,14 @@ async function loadStockData() {
             const maxEnd = ends[ends.length - 1];
             const months = monthsBetween(minStart, maxEnd);
             document.getElementById("verifyPeriodSummary").textContent =
-                months ? `${months}개월` : "-";
+                months ? `${months}개월` : "—";
             document.getElementById("verifyPeriodSub").textContent = `${minStart} ~ ${maxEnd}`;
+            // sparkline: 각 검증의 기간 길이 (개월)
+            const periods = sorted.map(r => {
+                if (!r.startDate || !r.endDate) return null;
+                return monthsBetween(r.startDate, r.endDate);
+            }).filter(v => v !== null);
+            qmRenderSparkline('spark-verifyPeriodSummary', periods.slice(-10));
         }
     }
 
@@ -1321,7 +2978,12 @@ async function loadStockData() {
         const container = document.getElementById("verifyHistoryTable");
         if (!container) return;
         if (!history.length) {
-            container.innerHTML = '<div class="loading">검증 결과가 아직 없습니다. 🔮 AI 예측 탭의 [모델 성능 검증 도구]로 첫 검증을 실행해 보세요.</div>';
+            // PASS 6: friendlier empty state with illustration + kbd hint
+            container.innerHTML = qmEmptyState({
+                icon: '🔮',
+                title: '아직 검증된 모델이 없어요',
+                hint: '<kbd>🔮 AI 예측</kbd> 탭의 [모델 성능 검증 도구]에서<br>첫 검증을 실행하면 여기에 누적 결과가 쌓입니다.'
+            });
             return;
         }
         // 방향정확도 내림차순
@@ -1329,7 +2991,7 @@ async function loadStockData() {
         const top = sorted[0];
 
         let html = '<table class="verify-history-table"><tr>'
-            + '<th>방향정확도</th><th>모델</th><th>종목</th><th>검증기간</th><th>신뢰도필터</th><th>검증일자</th>'
+            + '<th>방향정확도</th><th>모델</th><th>종목</th><th>검증기간</th><th>신호 발생률</th><th>검증일자</th>'
             + '</tr>';
         for (const r of sorted) {
             const acc = Number(r.directionAccuracy) || 0;
@@ -1372,7 +3034,10 @@ async function loadStockData() {
         let chartDebounce = null;
         tickerEl.addEventListener("change", () => {
             clearTimeout(chartDebounce);
-            chartDebounce = setTimeout(() => loadStockData(), 200);
+            chartDebounce = setTimeout(() => {
+                loadStockData();
+                if (typeof loadModelList === 'function') loadModelList();
+            }, 200);
         });
     });
 </script>

@@ -1,0 +1,36 @@
+# ============================================================
+# application-local.properties.example
+# ------------------------------------------------------------
+# 이 파일을 복사해서 `application-local.properties` 로 저장한 뒤
+# 본인 환경에 맞게 값을 채워 넣으면 됩니다. `application-local.properties`
+# 는 .gitignore 에 등록되어 있어 커밋되지 않습니다.
+#
+# 실행 방법:
+#   1) `cp application-local.properties.example application-local.properties`
+#   2) 필요한 값만 채우기 (다른 줄은 지워도 OK — application.properties 의 디폴트가 적용됨)
+#   3) Spring 실행 시 자동 로드 (Spring Boot 가 application-*.properties 를 인식)
+#
+# 또는 환경변수로도 같은 효과:
+#   PowerShell:  $env:DB_PASSWORD = "myrealpassword"
+#   bash/zsh:    export DB_PASSWORD=myrealpassword
+# ============================================================
+
+# --- Database ---
+# spring.datasource.password=1234
+# spring.datasource.username=myuser
+# spring.datasource.url=jdbc:mysql://my-db-host:3306/quant_db?...
+
+# --- Python 인터프리터 경로 (OS 별) ---
+# Windows venv: agent/venv/Scripts/python.exe   (디폴트)
+# Linux/Mac venv: agent/venv/bin/python
+# collector.python-path=/absolute/path/to/python
+# manager.python-path=/absolute/path/to/AItr_manager/venv/bin/python
+
+# --- 절대경로 강제 (다른 디렉토리에서 실행할 때) ---
+# collector.script-path=/abs/path/to/agent/stock_collector.py
+# backtest.script-path=/abs/path/to/agent/backtest_runner.py
+# manager.script-path=/abs/path/to/agent/AItr_manager/main.py
+# simulator.script-path=/abs/path/to/agent/pattern_match_service.py
+
+# --- Collector 자동 실행 켜기 (매일 09:00 주가 수집) ---
+# collector.enabled=true

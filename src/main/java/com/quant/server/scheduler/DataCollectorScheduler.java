@@ -17,7 +17,7 @@ public class DataCollectorScheduler {
     @Value("${collector.python-path:python}")
     private String pythonPath;
 
-    @Value("${collector.script-path:C:/QuantMaster/python/stock_collector.py}")
+    @Value("${collector.script-path:agent/stock_collector.py}")
     private String scriptPath;
 
     @Value("${collector.enabled:false}")

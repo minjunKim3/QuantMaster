@@ -2,7 +2,17 @@ import FinanceDataReader as fdr
 from pykrx import stock
 import pandas as pd
 import numpy as np
+import math
 from datetime import datetime, timedelta
+
+
+def _nz(v, default=0.0):
+    """NaN/Inf 안전 가드 — finite 아니면 default 반환."""
+    try:
+        f = float(v)
+        return f if math.isfinite(f) else default
+    except (TypeError, ValueError):
+        return default
 
 class StockEngine:
     def __init__(self):
@@ -69,26 +79,44 @@ class StockEngine:
                 
                 ind = self._calculate_indicators(df)
                 curr_price = int(df['Close'].iloc[-1])
-                price_chg = ((curr_price - df['Close'].iloc[-(days+1)]) / df['Close'].iloc[-(days+1)]) * 100
-                vol_ratio = df['Volume'].iloc[-1] / df['Volume'].iloc[-(days+3):-1].mean() if df['Volume'].iloc[-(days+3):-1].mean() > 0 else 1.0
-                volatility = df['Close'].pct_change().tail(days).std()
+                # 20260601: NaN 가드 — 데이터 부족·결측치로 인한 NaN이 점수까지 전파되어
+                # UI에서 "점수 공란"으로 보이던 버그 수정. 모든 지표를 _nz로 감싼다.
+                price_chg = _nz(((curr_price - df['Close'].iloc[-(days+1)]) / df['Close'].iloc[-(days+1)]) * 100)
+                vol_mean = df['Volume'].iloc[-(days+3):-1].mean()
+                vol_ratio = _nz(df['Volume'].iloc[-1] / vol_mean, default=1.0) if (vol_mean and vol_mean > 0) else 1.0
+                volatility = _nz(df['Close'].pct_change().tail(days).std())
+
+                rsi = _nz(ind['rsi'], default=50.0)
+                bb_pct = _nz(ind['bb_pct'], default=0.5)
+                ma_gap = _nz(ind['ma_gap'], default=0.0)
+                macd = _nz(ind['macd'])
+                macd_sig = _nz(ind['macd_sig'])
 
                 # 동적 가중치 스코어링 로직 (사용자 요청 반영)
-                score = 50
+                # 20260602: 기존 if 이산 보너스 3개가 가중치 sparse 할 때 score 를 2~4개
+                # 버킷으로 뭉치게 만들어 "25개 80점, 25개 74점" 양극화가 발생했음.
+                # 같은 임계값에서 full bonus, 임계 밖에서 0 이 되도록 선형 ramp 로 교체 →
+                # 종목별 미세 차이가 score 에 반영되어 88.9 / 88.5 같은 연속 분포로 회복.
+                score = 50.0
                 score += price_chg * weights.get('price_chg', 0)
                 score += (vol_ratio - 1) * weights.get('vol_ratio', 0) * 10
-                score += (30 - ind['rsi']) * weights.get('rebound', 0) 
-                
-                if ind['bb_pct'] < 0.2: score += weights.get('rebound', 0) * 20
-                if abs(ind['ma_gap']) < 0.05: score += weights.get('stability', 0) * 30
-                if ind['macd'] > ind['macd_sig']: score += weights.get('trend', 0) * 20
-                # 변동성 키워드 대응 추가
+                score += (30 - rsi) * weights.get('rebound', 0)
+
+                score += max(0.0, (0.2 - bb_pct) / 0.2) * weights.get('rebound', 0) * 20
+                score += max(0.0, (0.05 - abs(ma_gap)) / 0.05) * weights.get('stability', 0) * 30
+                macd_diff = macd - macd_sig
+                macd_denom = max(abs(macd_sig), abs(macd), 1e-6)
+                score += max(0.0, min(1.0, macd_diff / macd_denom)) * weights.get('trend', 0) * 20
                 score += volatility * weights.get('volatility', 0) * 100
+
+                # 최종 안전망: score 자체가 어쩌다 NaN이 되면 기본값 50으로 폴백 (정렬도 안전해짐)
+                score = _nz(score, default=50.0)
 
                 results.append({
                     'ticker': ticker, 'name': name, 'score': round(score, 2),
-                    'price_chg': round(price_chg, 2), 'rsi': round(ind['rsi'], 2),
-                    'vol_ratio': round(vol_ratio, 2), 'macd_status': "상승" if ind['macd'] > ind['macd_sig'] else "조정",
+                    'price_chg': round(price_chg, 2), 'rsi': round(rsi, 2),
+                    'vol_ratio': round(vol_ratio, 2),
+                    'macd_status': "상승" if macd > macd_sig else "조정",
                     'current_price': curr_price
                 })
             except: continue

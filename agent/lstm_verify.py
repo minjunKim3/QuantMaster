@@ -104,6 +104,7 @@ def main() -> None:
 
     code = (params.get("code") or "KS11").strip()
     model_version = params.get("modelVersion", "V5")
+    model_id_req = str(params.get("modelId", "") or "").strip()
     start_date = params.get("startDate")
     end_date = params.get("endDate")
 
@@ -163,7 +164,7 @@ def main() -> None:
         mode="w", suffix=".json", delete=False, encoding="utf-8"
     )
     try:
-        json.dump({"code": code, "days": days_needed}, tf)
+        json.dump({"code": code, "days": days_needed, "modelId": model_id_req}, tf)
         tf.flush()
         tf.close()
         proc = subprocess.run(
@@ -209,14 +210,21 @@ def main() -> None:
     predictions_t3 = pred.get("predictions_t3") or []
     model_used = pred.get("modelVersion", model_version)
 
-    # MODIFIED [Confidence Gating]: V5만 게이팅 적용 (V3/V4/V2는 max/min 트릭 미사용)
+    # MODIFIED [Confidence Gating]: V5/V6 모두 게이팅 적용 (둘 다 3-step max/min 트릭 사용).
+    # 20260602: V6 추가 + 종목별 calibrated threshold (B 옵션) 도입.
     gating_applicable = (
-        model_used == "V5"
+        model_used in ("V5", "V6")
         and bool(predictions_t2)
         and bool(predictions_t3)
         and len(predictions_t2) == len(predictions)
         and len(predictions_t3) == len(predictions)
     )
+    # 20260602 B-option: lstm_service 응답에서 종목별 calibrated threshold 받아 사용.
+    #   service 가 meta.pkl 의 gate_entry/exit_thr_raw 를 전달해줌. 없으면 글로벌 default.
+    #   service 에서 사용한 MULT=20 환경의 등가값: 0.21/20=0.0105, 0.32/20=0.0160.
+    gate_entry_thr_raw = float(pred.get("gateEntryThrRaw", 0.0105))
+    gate_exit_thr_raw  = float(pred.get("gateExitThrRaw",  0.0160))
+    gate_calibrated   = bool(pred.get("gateCalibrated", False))
 
     # 3) 요청 구간 필터 (V5면 t1/t2/t3 quintuple, 아니면 t1만)
     quintuples = []  # (date, actual, p_t1, p_t2, p_t3 or None)
@@ -267,7 +275,10 @@ def main() -> None:
     entry_total = 0
     exit_correct = 0
     exit_total = 0
-    samples_predicted = 0  # entry OR exit 게이팅 통과 표본 수
+    # 신호 발생률 = (entry 통과 + exit 통과) / (samples_total × 2)
+    # OR 조건이었던 이전 방식은 entry 100% 통과 종목에선 무조건 100% 표시되어 게이팅이 가려졌음
+    entry_pass_count = 0
+    exit_pass_count = 0
     samples_total = 0      # 게이팅 평가 후보 표본 수 (미래 actual 충분히 있는 것)
 
     for i in range(1, len(quintuples)):
@@ -314,32 +325,35 @@ def main() -> None:
         actual_ret_max = max(actual_ret_t1, actual_ret_t2, actual_ret_t3)
         actual_ret_min = min(actual_ret_t1, actual_ret_t2, actual_ret_t3)
 
-        # 신뢰도 + 게이팅 마스크
+        # 신뢰도 (화면 표시 호환) + 게이팅 마스크 (실제 결정은 raw |return| vs 종목별 threshold)
         conf_entry = min(abs(pred_ret_max) * GATE_MULT, 1.0)
         conf_exit = min(abs(pred_ret_min) * GATE_MULT, 1.0)
-        entry_pass = conf_entry > GATE_ENTRY_THR
-        exit_pass = conf_exit > GATE_EXIT_THR
+        # 20260602 B-option: raw |return| 기준으로 게이팅 — service 와 동일 로직
+        entry_pass = abs(pred_ret_max) > gate_entry_thr_raw
+        exit_pass  = abs(pred_ret_min) > gate_exit_thr_raw
 
         samples_total += 1
-        if entry_pass or exit_pass:
-            samples_predicted += 1
-
         if entry_pass:
+            entry_pass_count += 1
             entry_total += 1
             if _sign(pred_ret_max) == _sign(actual_ret_max):
                 entry_correct += 1
         if exit_pass:
+            exit_pass_count += 1
             exit_total += 1
             if _sign(pred_ret_min) == _sign(actual_ret_min):
                 exit_correct += 1
+    samples_predicted = entry_pass_count + exit_pass_count
 
-    # directionAccuracy: V5+게이팅이면 entry/exit DA 평균, 아니면 기존 단일 step DA
+    # directionAccuracy 는 통과 표본 수로 가중평균 — 학습 시 gatedWeightedDaPct 와 같은 공식
     legacy_direction_acc = round((legacy_correct / legacy_total) * 100.0, 2) if legacy_total else 0.0
     if gating_applicable and (entry_total + exit_total) > 0:
         da_entry = (entry_correct / entry_total) * 100.0 if entry_total else None
         da_exit = (exit_correct / exit_total) * 100.0 if exit_total else None
         if da_entry is not None and da_exit is not None:
-            direction_acc = round((da_entry + da_exit) / 2.0, 2)
+            direction_acc = round(
+                (entry_total * da_entry + exit_total * da_exit) / (entry_total + exit_total), 2
+            )
         elif da_entry is not None:
             direction_acc = round(da_entry, 2)
         else:
@@ -370,8 +384,9 @@ def main() -> None:
     improvement = round(direction_acc - naive_acc, 2)
 
     # MODIFIED [Confidence Gating]: 게이팅 메타 필드
+    # 분모 ×2: entry/exit 각각 평가했으므로 표본당 2번 카운트 가능
     gating_ratio = (
-        round(samples_predicted / samples_total, 4) if samples_total else 0.0
+        round(samples_predicted / (samples_total * 2), 4) if samples_total else 0.0
     )
 
     result = {
@@ -402,6 +417,10 @@ def main() -> None:
             "entry": GATE_ENTRY_THR,
             "exit": GATE_EXIT_THR,
             "mult": GATE_MULT,
+            # 20260602 B-option: 종목별 calibrated threshold (실제 게이팅 기준)
+            "entry_raw": gate_entry_thr_raw,
+            "exit_raw": gate_exit_thr_raw,
+            "calibrated": gate_calibrated,
         } if gating_applicable else None,
         "gatedEntryAccuracy": round(da_entry, 2) if (gating_applicable and da_entry is not None) else None,
         "gatedExitAccuracy": round(da_exit, 2) if (gating_applicable and da_exit is not None) else None,

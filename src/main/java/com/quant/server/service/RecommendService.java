@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RecommendService {
 
-    // manager 전용 venv (V5 venv 와 분리)
-    @Value("${manager.python-path:C:/QuantMaster/server/agent/AItr_manager/venv/Scripts/python.exe}")
+    // manager 전용 venv (V5/V6 venv 와 분리)
+    @Value("${manager.python-path:agent/AItr_manager/venv/Scripts/python.exe}")
     private String managerPythonPath;
 
     // manager 진입점 (CLI 1회 호출 모드 지원하도록 main.py 에 run_cli 추가됨)
-    @Value("${manager.script-path:C:/QuantMaster/server/agent/AItr_manager/main.py}")
+    @Value("${manager.script-path:agent/AItr_manager/main.py}")
     private String managerScriptPath;
 
     // LLM 2회 + 종목 스캔 = ~6분. 여유 있게 기본 12분.
@@ -50,11 +50,20 @@ public class RecommendService {
             tempFile = Files.createTempFile("recommend_", ".json");
             Files.writeString(tempFile, paramsJson);
 
+            // 절대 경로로 강제 — 상대 경로 + working dir 조합이 실행 환경에 따라 이중 해석되어
+            // agent\AItr_manager\agent\AItr_manager\main.py 같은 경로로 fail 하던 버그 차단.
+            File scriptFile = new File(managerScriptPath).getAbsoluteFile();
+            File pythonFile = new File(managerPythonPath).getAbsoluteFile();
+            log.info("[종목추천] python={}", pythonFile);
+            log.info("[종목추천] script={}", scriptFile);
+
             ProcessBuilder pb = new ProcessBuilder(
-                    managerPythonPath, managerScriptPath, tempFile.toString());
+                    pythonFile.getAbsolutePath(),
+                    scriptFile.getAbsolutePath(),
+                    tempFile.toString());
             pb.redirectErrorStream(true);
             // manager 폴더를 작업 디렉토리로 → 상대 경로(src 패키지, gguf 등) 안전
-            pb.directory(new File(managerScriptPath).getParentFile());
+            pb.directory(scriptFile.getParentFile());
 
             process = pb.start();
 

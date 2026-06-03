@@ -1,4 +1,14 @@
 import sys
+# 20260602: cp949 콘솔(Windows 한국어 기본)에서 ⏱·— 등 비-CP949 문자가
+# print 시 'cp949' codec can't encode … 로 터지는 문제 차단.
+# lstm_service.py 가 in-process 로 import 해서 train_model 을 호출할 때
+# stdout 이 아직 cp949 상태라 PhaseTimer.report() 가 깨졌음.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 import json
 import random
 import numpy as np
@@ -23,6 +33,48 @@ from autogluon.timeseries import TimeSeriesPredictor, TimeSeriesDataFrame
 # 재현성: 시드 고정 (random / numpy / torch / DataLoader worker)
 # ============================================
 SEED = 42
+
+# ============================================
+# 20260602: 구간별 소요시간 측정 — 새 종목 학습이 10분 가까이 걸리는 원인 추적용.
+# 목표는 종목당 ≤2분. 어느 구간이 잡아먹는지 확인 → 핀포인트 튜닝.
+# 사용법: pt = PhaseTimer(); with pt.phase("name"): ...  / pt.report()
+# 중첩(sub-phase)도 지원: with pt.phase("autogluon", parent=None): / with pt.phase("rolling_chronos", parent="autogluon")
+# ============================================
+class PhaseTimer:
+    def __init__(self):
+        self.records = []  # [(name, parent, sec)]
+        self._stack = []
+
+    class _Ctx:
+        def __init__(self, owner, name, parent):
+            self.o = owner; self.n = name; self.p = parent; self.t0 = 0.0
+        def __enter__(self):
+            self.t0 = time.time(); self.o._stack.append(self.n); return self
+        def __exit__(self, *a):
+            self.o.records.append((self.n, self.p, time.time() - self.t0))
+            self.o._stack.pop()
+
+    def phase(self, name, parent=None):
+        return PhaseTimer._Ctx(self, name, parent)
+
+    def add(self, name, sec, parent=None):
+        self.records.append((name, parent, sec))
+
+    def report(self, header):
+        total = sum(sec for n, p, sec in self.records if p is None)
+        print(f"\n{'='*60}")
+        print(f"  ⏱  TIMING BREAKDOWN — {header}")
+        print(f"{'='*60}")
+        for name, parent, sec in self.records:
+            pct = (sec / total * 100) if (parent is None and total > 0) else None
+            indent = "    " if parent else "  "
+            tag = f"({pct:5.1f}%)" if pct is not None else "       "
+            print(f"  {indent}{name:<28} {sec:>7.1f}s {tag}")
+        print(f"  {'-'*55}")
+        print(f"  TOTAL (top-level sum)         {total:>7.1f}s ({total/60:.1f}분)")
+        print(f"{'='*60}")
+        return total
+
 
 def set_seed(seed: int = SEED) -> None:
     random.seed(seed)
@@ -131,23 +183,26 @@ def add_dwt_features(close_prices, window_size=128):
             dwt_high[i] = coeffs[1][-1]
             dwt_low[i] = coeffs[2][-1]
             dwt_energy[i] = np.sum(coeffs[1]**2) + np.sum(coeffs[2]**2)
-        except:
+        except Exception:
             pass
     return dwt_trend, dwt_high, dwt_low, dwt_energy
 
 # ============================================
 # 외부 지표 (V3와 동일)
 # ============================================
-def get_external_data(start_date, end_date):
+def get_external_data(start_date, end_date, timer=None):
     externals = {}
     symbols = {'vix': '^VIX', 'gold': 'GC=F', 'dxy': 'DX-Y.NYB'}
     for name, ticker in symbols.items():
+        t0 = time.time()
         try:
             data = yf.download(ticker, start=start_date, end=end_date, progress=False)
             if not data.empty:
                 externals[name] = data['Close']
-        except:
+        except Exception:
             pass
+        if timer is not None:
+            timer.add(f"yf_{name}", time.time() - t0, parent="external")
     return externals
 
 # ============================================
@@ -163,7 +218,7 @@ def get_external_data(start_date, end_date):
 # 학습 시간이 엄청 오래 걸려 (수십 분~수 시간)
 # 여기서는 간소화해서 일괄 예측 방식으로 처리
 # ============================================
-def generate_foundation_predictions(df, code, close_mean, model_dir):
+def generate_foundation_predictions(df, code, close_mean, model_dir, timer=None):
     """Chronos + DeepAR + ADIDA 예측 생성"""
 
     print("  [Foundation] AutoGluon 모델 학습 시작...")
@@ -184,12 +239,15 @@ def generate_foundation_predictions(df, code, close_mean, model_dir):
     ag_path = os.path.join(model_dir, f'{safe_code}_autogluon')
 
     # 학습 또는 로드
+    t_loadfit = time.time()
+    loaded_existing = False
     if os.path.exists(ag_path):
         print("  [Foundation] 기존 AutoGluon 모델 로드 중...")
         try:
             predictor = TimeSeriesPredictor.load(ag_path)
+            loaded_existing = True
             print("  [Foundation] 기존 모델 로드 성공!")
-        except:
+        except Exception:
             print("  [Foundation] 로드 실패, 새로 학습...")
             predictor = None
     else:
@@ -216,6 +274,9 @@ def generate_foundation_predictions(df, code, close_mean, model_dir):
         )
         predictor.save()
         print("  [Foundation] AutoGluon 학습 완료!")
+    if timer is not None:
+        label = "ag_load" if loaded_existing else "ag_fit"
+        timer.add(label, time.time() - t_loadfit, parent="autogluon")
 
     # Rolling 예측 — 각 시점에서 다음 1일 예측
     MODEL_NAMES = {
@@ -232,6 +293,7 @@ def generate_foundation_predictions(df, code, close_mean, model_dir):
 
     for model_name, col_name in MODEL_NAMES.items():
         print(f"  [Foundation] {model_name} 예측 중...")
+        t_model = time.time()
 
         for batch_start in range(context_len, len(df), batch_size):
             batch_end = min(batch_start + batch_size, len(df))
@@ -258,12 +320,14 @@ def generate_foundation_predictions(df, code, close_mean, model_dir):
                     item_id = f'DATA_{idx}'
                     try:
                         predictions[col_name][idx] = pred.loc[item_id]['mean'].iloc[0]
-                    except:
+                    except Exception:
                         pass
             except Exception as e:
                 print(f"    배치 {batch_start}-{batch_end} 실패: {e}")
                 continue
 
+        if timer is not None:
+            timer.add(f"rolling_{col_name}", time.time() - t_model, parent="autogluon")
         valid_count = np.isfinite(predictions[col_name]).sum()
         print(f"  [Foundation] {model_name} 완료: {valid_count}개 예측")
 
@@ -331,15 +395,21 @@ def create_features_v4(df, external_data=None, foundation_preds=None):
 # ============================================
 # 학습 함수
 # ============================================
-def train_model(code, start_date='2015-01-01'):
+def train_model(code, start_date='2015-01-01', timer=None):
     set_seed(SEED)  # 재현성: 종목별 학습 시작마다 시드 재고정
     print(f"\n{'='*60}")
     print(f"LSTM V5 학습: {code} (Foundation Model 앙상블 + 수익률 타겟)")  # MODIFIED FROM V4: 로그 V4 → V5 + 수익률 표기
     print(f"{'='*60}")
 
+    # 20260602: 종목별 구간 측정 — 인자로 받지 않으면 로컬에서 직접 생성
+    own_timer = timer is None
+    if own_timer:
+        timer = PhaseTimer()
+
     # 1. 데이터
     print(f"\n[1] 데이터 다운로드: {code}")
-    df = fdr.DataReader(code, start_date)
+    with timer.phase("data_download"):
+        df = fdr.DataReader(code, start_date)
     if df.empty or len(df) < 200:
         print(f"  데이터 부족! ({len(df)}일)")
         return False
@@ -354,54 +424,60 @@ def train_model(code, start_date='2015-01-01'):
     model_dir = os.path.join(script_dir, 'models_v5')  # MODIFIED FROM V4: models_v4 → models_v5
     os.makedirs(model_dir, exist_ok=True)
 
-    foundation_preds = generate_foundation_predictions(df, code, close_mean, model_dir)
+    with timer.phase("autogluon"):
+        foundation_preds = generate_foundation_predictions(df, code, close_mean, model_dir, timer=timer)
 
     # 3. 외부 지표
     print(f"\n[3] 외부 지표 로드")
-    external_data = get_external_data(start_date, df.index[-1].strftime('%Y-%m-%d'))
+    with timer.phase("external"):
+        external_data = get_external_data(start_date, df.index[-1].strftime('%Y-%m-%d'), timer=timer)
 
     # 4. 특성 생성
     print(f"\n[4] 특성 생성")
-    features = create_features_v4(df, external_data, foundation_preds)
+    with timer.phase("features"):
+        features = create_features_v4(df, external_data, foundation_preds)
     print(f"  특성 수: {len(features.columns)}개")
     print(f"  특성 목록: {list(features.columns)}")
 
     # 5. 정규화
-    scaler = RobustScaler()
-    target_scaler = RobustScaler()
+    with timer.phase("lstm_prep"):
+        scaler = RobustScaler()
+        target_scaler = RobustScaler()
 
-    feature_values = features.values
-    scaled = scaler.fit_transform(feature_values)
+        feature_values = features.values
+        scaled = scaler.fit_transform(feature_values)
 
-    # 6. 윈도우 + 타겟
-    WINDOW = 60
-    close_idx = list(features.columns).index('close')
-    close_raw = df['Close'].values  # MODIFIED FROM V4: 정규화 전 raw close 사용 (수익률 계산용)
+        # 6. 윈도우 + 타겟
+        WINDOW = 60
+        close_idx = list(features.columns).index('close')
+        close_raw = df['Close'].values  # MODIFIED FROM V4: 정규화 전 raw close 사용 (수익률 계산용)
 
-    X, y = [], []
-    for i in range(WINDOW, len(scaled) - 3):
-        X.append(scaled[i - WINDOW:i])
-        # MODIFIED FROM V4: 타겟을 가격(정규화)에서 수익률((p_future - p_now) / p_now)로 변경
-        p_now = close_raw[i]
-        y.append([
-            (close_raw[i + 1] - p_now) / p_now,
-            (close_raw[i + 2] - p_now) / p_now,
-            (close_raw[i + 3] - p_now) / p_now,
-        ])
+        X, y = [], []
+        for i in range(WINDOW, len(scaled) - 3):
+            X.append(scaled[i - WINDOW:i])
+            # MODIFIED FROM V4: 타겟을 가격(정규화)에서 수익률((p_future - p_now) / p_now)로 변경
+            p_now = close_raw[i]
+            y.append([
+                (close_raw[i + 1] - p_now) / p_now,
+                (close_raw[i + 2] - p_now) / p_now,
+                (close_raw[i + 3] - p_now) / p_now,
+            ])
 
-    X = np.array(X, dtype=np.float32)
-    y = np.array(y, dtype=np.float32)
-    y_scaled = target_scaler.fit_transform(y)
+        X = np.array(X, dtype=np.float32)
+        y = np.array(y, dtype=np.float32)
+        y_scaled = target_scaler.fit_transform(y)
 
-    split = int(len(X) * 0.8)
-    X_train, X_test = X[:split], X[split:]
-    y_train, y_test = y_scaled[:split], y_scaled[split:]
-    y_test_raw = y[split:]
+        split = int(len(X) * 0.8)
+        X_train, X_test = X[:split], X[split:]
+        y_train, y_test = y_scaled[:split], y_scaled[split:]
+        y_test_raw = y[split:]
 
-    print(f"  학습: {len(X_train)}개 | 테스트: {len(X_test)}개")
+        print(f"  학습: {len(X_train)}개 | 테스트: {len(X_test)}개")
 
     # 7. 학습
     print(f"\n[5] 학습 시작")
+    lstm_train_ctx = timer.phase("lstm_train")
+    lstm_train_ctx.__enter__()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = StockLSTM_V5(input_size=X.shape[-1]).to(device)  # MODIFIED FROM V4: StockLSTM_V4 → StockLSTM_V5
 
@@ -471,9 +547,12 @@ def train_model(code, start_date='2015-01-01'):
 
     elapsed = time.time() - start_time
     print(f"  학습 완료! {elapsed:.0f}초 ({elapsed/60:.1f}분)")
+    lstm_train_ctx.__exit__(None, None, None)
 
     # 8. 평가
     print(f"\n[6] 평가")
+    lstm_eval_ctx = timer.phase("lstm_eval")
+    lstm_eval_ctx.__enter__()
     model.eval()
     with torch.no_grad():
         pred_scaled = model(torch.FloatTensor(X_test).to(device)).cpu().numpy()
@@ -596,8 +675,12 @@ def train_model(code, start_date='2015-01-01'):
           f"Exit DA: {x_filt_str} (keep {n_x_filt}/{n_test}={n_x_filt/n_test*100:.1f}%) | "
           f"평균: {avg_filt_str} (Δ vs gating {delta_filt_str})")
 
+    lstm_eval_ctx.__exit__(None, None, None)
+
     # 9. 저장
     print(f"\n[7] 모델 저장")
+    lstm_save_ctx = timer.phase("lstm_save")
+    lstm_save_ctx.__enter__()
     safe_code = code.replace('^', '').replace('/', '_')
 
     torch.save(model.state_dict(), os.path.join(model_dir, f'{safe_code}_lstm_v5.pth'))  # MODIFIED FROM V4: *_lstm_v4.pth → *_lstm_v5.pth
@@ -634,6 +717,10 @@ def train_model(code, start_date='2015-01-01'):
         pickle.dump(meta, f)
 
     print(f"  저장 완료: {model_dir}/{safe_code}_*")
+    lstm_save_ctx.__exit__(None, None, None)
+
+    if own_timer:
+        timer.report(f"{code}")
     return True
 
 # ============================================
@@ -655,14 +742,41 @@ if __name__ == '__main__':
 
     total_start = time.time()
     success = 0
+    per_ticker = []  # 20260602: 종목별 phase 비교 누적
 
     for code, name in targets.items():
         print(f"\n>>> {name} ({code})")
-        if train_model(code):
+        timer = PhaseTimer()
+        if train_model(code, timer=timer):
             success += 1
+        total = timer.report(f"{name} ({code})")
+        per_ticker.append((f"{name}({code})", timer, total))
 
     total_elapsed = time.time() - total_start
     print(f"\n{'='*60}")
     print(f"전체 완료! {success}/{len(targets)}개 성공")
     print(f"총 소요시간: {total_elapsed/60:.1f}분")
     print(f"{'='*60}")
+
+    # 20260602: 종목간 phase 비교표 — 어느 종목 어느 phase 가 튀는지 한눈에
+    if per_ticker:
+        phases = ["data_download", "autogluon", "external", "features",
+                  "lstm_prep", "lstm_train", "lstm_eval", "lstm_save"]
+        print(f"\n{'='*60}")
+        print(f"  ⏱  종목 간 PHASE 비교 (단위: 초)")
+        print(f"{'='*60}")
+        header = f"  {'phase':<16}" + "".join(f"{n[:14]:>15}" for n, _, _ in per_ticker)
+        print(header)
+        print("  " + "-" * (16 + 15 * len(per_ticker)))
+        for ph in phases:
+            row = f"  {ph:<16}"
+            for _, tm, _ in per_ticker:
+                sec = sum(s for n, p, s in tm.records if n == ph and p is None)
+                row += f"{sec:>14.1f}s"
+            print(row)
+        print("  " + "-" * (16 + 15 * len(per_ticker)))
+        row = f"  {'TOTAL':<16}"
+        for _, _, tot in per_ticker:
+            row += f"{tot:>14.1f}s"
+        print(row)
+        print(f"{'='*60}")

@@ -49,6 +49,14 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!-- 20260602: Spring Boot DevTools — 정적 리소스(index.html, CSS) 수정 시 Ctrl+F9
+		     없이도 라이브 reload. production JAR 에는 자동으로 빠짐 (optional + provided 패턴). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -81,6 +89,36 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<!-- 20260603: mvn spring-boot:run 시 8080 점유 좀비 프로세스 자동 종료.
+			     Spring Boot Maven Plugin 의 run goal 은 test-compile lifecycle 까지 자동 트리거하므로
+			     validate phase 에 바인딩하면 매번 자동 실행됨. PowerShell 5.1 호환 (Windows). -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>kill-port-8080</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>powershell</executable>
+							<arguments>
+								<argument>-NoProfile</argument>
+								<argument>-NonInteractive</argument>
+								<argument>-Command</argument>
+								<argument>$c = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue; if ($c) { foreach ($x in $c) { try { Stop-Process -Id $x.OwningProcess -Force -ErrorAction Stop; Write-Output ('[kill-port-8080] killed PID ' + $x.OwningProcess) } catch { Write-Output ('[kill-port-8080] could not kill PID ' + $x.OwningProcess + ': ' + $_.Exception.Message) } }; Start-Sleep -Milliseconds 500 } else { Write-Output '[kill-port-8080] no process on 8080' }</argument>
+							</arguments>
+							<successCodes>
+								<successCode>0</successCode>
+								<successCode>1</successCode>
+							</successCodes>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
